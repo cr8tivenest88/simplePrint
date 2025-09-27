@@ -3,185 +3,371 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Custom Business Cards</title>
+    <title>Professional Business Cards - SimplePrint</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/css/styles.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .hero-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .price-tag {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            border-radius: 50px;
+            padding: 0.5rem 1rem;
+            font-weight: bold;
+        }
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            margin: 0 auto 1rem;
+        }
+        .product-card {
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        .product-image {
+            height: 200px;
+            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: #6c757d;
+        }
+    </style>
 </head>
 <body>
-    <!-- Hero Section -->
-    <div class="bg-primary text-white py-5 text-center">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
         <div class="container">
-            <h1 class="display-4">Professional Business Cards</h1>
-            <p class="lead">Try 50 cards for $13</p>
-            <button class="btn btn-success btn-lg">Get Free Sample Kit</button>
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="bi bi-printer text-primary"></i> SimplePrint
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="#products">Products</a>
+                <a class="nav-link" href="#features">Features</a>
+                <a class="nav-link" href="#reviews">Reviews</a>
+                <button class="btn btn-primary">Get Sample Kit</button>
+            </div>
         </div>
-    </div>
+    </nav>
 
-    <div class="container my-5">
-        <div class="row">
-            <!-- Options Column -->
-            <div class="col-md-4">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">Customize Your Cards</h5>
-                        
-                        <!-- Paper Selection -->
-                        <div class="mb-3">
-                            <label for="paper-select" class="form-label">Select Paper Type:</label>
-                            <select class="form-select" id="paper-select">
-                                <% papers.forEach(paper => { %>
-                                    <option value="<%= paper.name.toLowerCase() %>">
-                                        <%= paper.name %> - <%= paper.finish %>
-                                    </option>
-                                <% }); %>
-                            </select>
-                            <div id="paper-description" class="form-text"></div>
-                        </div>
-
-                        <!-- Quantity Selection -->
-                        <div class="mb-3">
-                            <label for="quantity-select" class="form-label">Quantity:</label>
-                            <select class="form-select" id="quantity-select">
-                                <option value="50">50 Cards</option>
-                                <option value="100">100 Cards</option>
-                                <option value="500">500 Cards</option>
-                                <option value="1000">1000 Cards</option>
-                                <option value="5000">5000 Cards</option>
-                            </select>
-                        </div>
-
-                        <!-- Upgrades -->
-                        <% upgrades.forEach(upgrade => { %>
-                            <div class="mb-3 form-check">
-                                <input type="checkbox" class="form-check-input" id="<%= upgrade.name.toLowerCase().replace(/\s+/g, '-') %>">
-                                <label class="form-check-label" for="<%= upgrade.name.toLowerCase().replace(/\s+/g, '-') %>">
-                                    <%= upgrade.name %>
-                                </label>
-                                <div class="form-text"><%= upgrade.description %></div>
-                            </div>
-                        <% }); %>
-
-                        <!-- File Upload -->
-                        <div class="mb-3">
-                            <label for="file-upload" class="form-label">Upload Your Design</label>
-                            <input type="file" class="form-control" id="file-upload" accept="image/*">
-                            <div class="form-text">Or choose from our templates below</div>
-                        </div>
-
-                        <!-- Pricing -->
-                        <div class="mt-4 text-center">
-                            <h3>Total: <span id="total-price">$13</span></h3>
-                            <p>for <span id="card-quantity">50</span> cards</p>
-                            <button class="btn btn-primary btn-lg w-100">Order Now</button>
-                        </div>
+    <!-- Hero Section -->
+    <div class="hero-gradient text-white py-5">
+        <div class="container">
+            <div class="row align-items-center min-vh-50">
+                <div class="col-lg-6">
+                    <h1 class="display-4 fw-bold mb-4">Professional Business Cards Made Simple</h1>
+                    <p class="lead mb-4">Premium quality business cards starting at just $15 for 50 cards. Fast delivery, exceptional quality.</p>
+                    <div class="d-flex gap-3">
+                        <button class="btn btn-success btn-lg">
+                            <i class="bi bi-lightning-charge"></i> Order Now
+                        </button>
+                        <button class="btn btn-outline-light btn-lg">
+                            <i class="bi bi-gift"></i> Free Sample Kit
+                        </button>
+                    </div>
+                </div>
+                <div class="col-lg-6 text-center">
+                    <div class="feature-icon mx-auto mb-4" style="width: 200px; height: 200px; font-size: 4rem;">
+                        <i class="bi bi-credit-card"></i>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Preview Column -->
-            <div class="col-md-8">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">Preview</h5>
-                        <div class="preview-container">
-                            <div id="card-front" class="card-preview">
-                                <div class="preview-placeholder">Front of Card</div>
-                            </div>
-                            <div id="card-back" class="card-preview" style="display: none;">
-                                <div class="preview-placeholder">Back of Card</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    <!-- Products Section -->
+    <section id="products" class="py-5 bg-light">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold mb-3">Our Business Card Products</h2>
+                <p class="lead text-muted">Choose from our professionally designed business card options</p>
+            </div>
 
-                <!-- Templates Section -->
-                <div class="mt-4">
-                    <h5>Design Templates</h5>
-                    <div class="row g-3">
-                        <% for(let i = 1; i <= 4; i++) { %>
-                            <div class="col-md-6">
-                                <div class="card template-card">
-                                    <div class="card-body">
-                                        Template <%= i %>
+            <% if (products && products.length > 0) { %>
+                <div class="row g-4">
+                    <% products.forEach(product => { %>
+                        <div class="col-lg-4 col-md-6">
+                            <div class="card product-card card-hover h-100 shadow-sm">
+                                <div class="product-image">
+                                    <i class="bi bi-credit-card-2-front"></i>
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title fw-bold"><%= product.name %></h5>
+                                    <p class="card-text text-muted"><%= product.description %></p>
+
+                                    <!-- Size Options -->
+                                    <div class="mb-3">
+                                        <small class="text-muted fw-semibold">Available Sizes:</small>
+                                        <div class="d-flex flex-wrap gap-1 mt-1">
+                                            <% product.sizes.forEach(size => { %>
+                                                <span class="badge bg-secondary">
+                                                    <%= size.name %> (<%= size.width %>" × <%= size.height %>")
+                                                </span>
+                                            <% }); %>
+                                        </div>
                                     </div>
+
+                                    <!-- Pricing -->
+                                    <div class="mb-3">
+                                        <small class="text-muted fw-semibold">Pricing:</small>
+                                        <% if (product.quantityPrices && product.quantityPrices.length > 0) { %>
+                                            <div class="pricing-options mt-1">
+                                                <% product.quantityPrices.slice(0, 2).forEach(qp => { %>
+                                                    <div class="d-flex justify-content-between">
+                                                        <span><%= qp.quantity %> cards:</span>
+                                                        <span class="price-tag">$<%= qp.price %></span>
+                                                    </div>
+                                                <% }); %>
+                                            </div>
+                                        <% } %>
+                                    </div>
+
+                                    <!-- Paper Count -->
+                                    <div class="mb-3">
+                                        <small class="text-muted">
+                                            <i class="bi bi-file-earmark-text"></i>
+                                            <%= (product.selectedPaperIds || []).length %> paper options available
+                                        </small>
+                                    </div>
+
+                                    <a href="/product/<%= product.id %>" class="btn btn-primary w-100 btn-lg">
+                                        <i class="bi bi-palette"></i> Customize & Price
+                                    </a>
                                 </div>
                             </div>
-                        <% } %>
+                        </div>
+                    <% }); %>
+                </div>
+            <% } else { %>
+                <div class="text-center py-5">
+                    <div class="feature-icon mx-auto mb-4">
+                        <i class="bi bi-inbox"></i>
+                    </div>
+                    <h3>No Products Available</h3>
+                    <p class="text-muted">Check back soon for our business card products!</p>
+                </div>
+            <% } %>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold mb-3">Why Choose SimplePrint?</h2>
+                <p class="lead text-muted">Professional quality you can trust</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-3 col-md-6 text-center">
+                    <div class="feature-icon mx-auto">
+                        <i class="bi bi-lightning-charge"></i>
+                    </div>
+                    <h5 class="fw-bold">Fast Delivery</h5>
+                    <p class="text-muted">3-5 business day turnaround on all orders</p>
+                </div>
+                <div class="col-lg-3 col-md-6 text-center">
+                    <div class="feature-icon mx-auto">
+                        <i class="bi bi-award"></i>
+                    </div>
+                    <h5 class="fw-bold">Premium Quality</h5>
+                    <p class="text-muted">Professional grade papers and printing</p>
+                </div>
+                <div class="col-lg-3 col-md-6 text-center">
+                    <div class="feature-icon mx-auto">
+                        <i class="bi bi-palette"></i>
+                    </div>
+                    <h5 class="fw-bold">Custom Designs</h5>
+                    <p class="text-muted">Upload your own design or choose from templates</p>
+                </div>
+                <div class="col-lg-3 col-md-6 text-center">
+                    <div class="feature-icon mx-auto">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h5 class="fw-bold">Satisfaction Guarantee</h5>
+                    <p class="text-muted">100% satisfaction or your money back</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Reviews Section -->
+    <section id="reviews" class="py-5 bg-light">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold mb-3">What Our Customers Say</h2>
+                <p class="lead text-muted">Join thousands of satisfied customers</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="card card-hover h-100 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="text-warning mb-3" style="font-size: 1.5rem;">★★★★★</div>
+                            <p class="card-text mb-3">"Exceptional quality business cards! The paper feels premium and the colors are vibrant. Will definitely order again."</p>
+                            <div class="d-flex align-items-center justify-content-center">
+                                <div class="bg-primary rounded-circle me-3" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="bi bi-person text-white"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">John Davidson</div>
+                                    <small class="text-muted">Marketing Director</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="card card-hover h-100 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="text-warning mb-3" style="font-size: 1.5rem;">★★★★★</div>
+                            <p class="card-text mb-3">"Fast delivery and professional finish. Love the variety of paper options available. Highly recommended!"</p>
+                            <div class="d-flex align-items-center justify-content-center">
+                                <div class="bg-success rounded-circle me-3" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="bi bi-person text-white"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">Sarah Mitchell</div>
+                                    <small class="text-muted">Small Business Owner</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="card card-hover h-100 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="text-warning mb-3" style="font-size: 1.5rem;">★★★★★</div>
+                            <p class="card-text mb-3">"The calculator tool made it easy to see pricing options. Great customer service and beautiful results."</p>
+                            <div class="d-flex align-items-center justify-content-center">
+                                <div class="bg-info rounded-circle me-3" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="bi bi-person text-white"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">Michael Chen</div>
+                                    <small class="text-muted">Freelance Designer</small>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+    </section>
 
-        <!-- Reviews Section -->
-        <div class="row mt-5">
-            <div class="col-12">
-                <h2 class="text-center mb-4">Customer Reviews</h2>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card mb-3">
-                            <div class="card-body">
-                                <div class="text-warning mb-2">★★★★★</div>
-                                <p class="card-text">"Great quality and fast delivery!"</p>
-                                <footer class="blockquote-footer">John D.</footer>
+    <!-- FAQ Section -->
+    <section class="py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold mb-3">Frequently Asked Questions</h2>
+                <p class="lead text-muted">Everything you need to know</p>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="accordion" id="faqAccordion">
+                        <div class="accordion-item border-0 shadow-sm mb-3">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                    How long does printing and delivery take?
+                                </button>
+                            </h2>
+                            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Standard orders are printed and shipped within 3-5 business days. Rush orders can be completed in 1-2 business days for an additional fee.
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card mb-3">
-                            <div class="card-body">
-                                <div class="text-warning mb-2">★★★★★</div>
-                                <p class="card-text">"Professional finish, love the paper options."</p>
-                                <footer class="blockquote-footer">Sarah M.</footer>
+
+                        <div class="accordion-item border-0 shadow-sm mb-3">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                    What file formats do you accept?
+                                </button>
+                            </h2>
+                            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    We accept PDF, PNG, and JPG files. For best results, use 300 DPI resolution. If you need design help, we also offer template options.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item border-0 shadow-sm mb-3">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                    Can I see a sample before ordering?
+                                </button>
+                            </h2>
+                            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Yes! Click "Get Sample Kit" to receive paper samples and see our quality firsthand. Sample kits are completely free.
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    </section>
 
-        <!-- FAQ Section -->
-        <div class="row mt-5">
-            <div class="col-12">
-                <h2 class="text-center mb-4">Frequently Asked Questions</h2>
-                <div class="accordion" id="faqAccordion">
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
-                                How long does printing take?
-                            </button>
-                        </h2>
-                        <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
-                            <div class="accordion-body">
-                                Standard orders are printed and shipped within 3-5 business days.
-                            </div>
-                        </div>
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-printer text-primary"></i> SimplePrint
+                    </h5>
+                    <p class="text-muted mb-0">Professional business cards made simple. Quality you can trust, prices you can afford.</p>
+                </div>
+                <div class="col-lg-6 text-lg-end">
+                    <div class="d-flex justify-content-lg-end gap-3 mb-3">
+                        <a href="#" class="text-light"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="text-light"><i class="bi bi-twitter"></i></a>
+                        <a href="#" class="text-light"><i class="bi bi-instagram"></i></a>
+                        <a href="#" class="text-light"><i class="bi bi-linkedin"></i></a>
                     </div>
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
-                                What file formats do you accept?
-                            </button>
-                        </h2>
-                        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                            <div class="accordion-body">
-                                We accept PDF, PNG, and JPG files. For best results, use 300 DPI.
-                            </div>
-                        </div>
-                    </div>
+                    <p class="text-muted mb-0">&copy; 2025 SimplePrint. All rights reserved.</p>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <footer class="bg-light py-4 mt-5">
-        <div class="container text-center">
-            <p class="mb-0">&copy; 2025 Business Card Printing. All rights reserved.</p>
         </div>
     </footer>
 
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/js/main.js"></script>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
 </body>
 </html>

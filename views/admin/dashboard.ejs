@@ -428,31 +428,56 @@
                     </option>`
                 ).join('');
 
-                // Populate paper options
+                // Populate paper options - only show papers selected for this product
                 const paperSelect = document.getElementById('paperSelect');
-                const standardPapers = papers.filter(p => p.category === 'standard');
-                const premiumPapers = papers.filter(p => p.category === 'premium');
-                
-                paperSelect.innerHTML = `
-                    <optgroup label="Standard Papers">
-                        ${standardPapers.map(paper => `
-                            <option value="${paper.id}" 
-                                    data-cost="${paper.upgradeCost}"
-                                    title="${paper.description}">
-                                ${paper.name} - ${paper.thickness} ${paper.finish}
-                            </option>
-                        `).join('')}
-                    </optgroup>
-                    <optgroup label="Premium Papers">
-                        ${premiumPapers.map(paper => `
-                            <option value="${paper.id}" 
-                                    data-cost="${paper.upgradeCost}"
-                                    title="${paper.description}">
-                                ${paper.name} - ${paper.thickness} ${paper.finish} (+$${paper.upgradeCost})
-                            </option>
-                        `).join('')}
-                    </optgroup>
-                `;
+
+                // Filter papers to only those selected for this product
+                const selectedPapers = papers.filter(p =>
+                    currentProduct.selectedPaperIds && currentProduct.selectedPaperIds.includes(p.id)
+                );
+
+                console.log('Product selected paper IDs:', currentProduct.selectedPaperIds);
+                console.log('Available papers:', papers.map(p => ({ id: p.id, name: p.name })));
+                console.log('Filtered selected papers:', selectedPapers.map(p => ({ id: p.id, name: p.name })));
+
+                if (selectedPapers.length === 0) {
+                    paperSelect.innerHTML = '<option>No papers selected for this product</option>';
+                } else {
+                    const standardPapers = selectedPapers.filter(p => p.category === 'standard');
+                    const premiumPapers = selectedPapers.filter(p => p.category === 'premium');
+
+                    let paperOptions = '';
+
+                    if (standardPapers.length > 0) {
+                        paperOptions += `
+                            <optgroup label="Standard Papers">
+                                ${standardPapers.map(paper => `
+                                    <option value="${paper.id}"
+                                            data-cost="${paper.upgradeCost}"
+                                            title="${paper.description}">
+                                        ${paper.name} - ${paper.thickness} ${paper.finish}
+                                    </option>
+                                `).join('')}
+                            </optgroup>
+                        `;
+                    }
+
+                    if (premiumPapers.length > 0) {
+                        paperOptions += `
+                            <optgroup label="Premium Papers">
+                                ${premiumPapers.map(paper => `
+                                    <option value="${paper.id}"
+                                            data-cost="${paper.upgradeCost}"
+                                            title="${paper.description}">
+                                        ${paper.name} - ${paper.thickness} ${paper.finish} (+$${paper.upgradeCost})
+                                    </option>
+                                `).join('')}
+                            </optgroup>
+                        `;
+                    }
+
+                    paperSelect.innerHTML = paperOptions;
+                }
 
                 // Populate upgrades
                 const upgradesContainer = document.getElementById('upgradesContainer');
