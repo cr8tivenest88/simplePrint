@@ -1,0 +1,88 @@
+{
+  "papers": [
+    {
+      "id": "P001",
+      "name": "Glossy",
+      "category": "standard",
+      "thickness": "14pt",
+      "finish": "Glossy (shiny)",
+      "description": "Bright, bold colors; great for logos/photos.",
+      "upgradeCost": 0
+    },
+    {
+      "id": "P002",
+      "name": "Matte",
+      "category": "standard",
+      "thickness": "14pt",
+      "finish": "Matte (non-reflective)",
+      "description": "Professional, smudge-resistant; ideal for text-heavy designs.",
+      "upgradeCost": 0
+    },
+    {
+      "id": "P003",
+      "name": "Uncoated",
+      "category": "standard",
+      "thickness": "14pt",
+      "finish": "Uncoated (raw)",
+      "description": "Writable with pen; natural feel for eco-brands.",
+      "upgradeCost": 0
+    },
+    {
+      "id": "P004",
+      "name": "Linen",
+      "category": "premium",
+      "thickness": "16-20pt",
+      "finish": "Linen (textured weave)",
+      "description": "Classic, embossable; upscale for professionals.",
+      "upgradeCost": 5
+    },
+    {
+      "id": "P005",
+      "name": "Recycled Matte",
+      "category": "premium",
+      "thickness": "14-16pt",
+      "finish": "Matte (recycled fibers)",
+      "description": "Eco-friendly, subtle grain; sustainable branding.",
+      "upgradeCost": 7
+    },
+    {
+      "id": "P006",
+      "name": "Kraft",
+      "category": "premium",
+      "thickness": "14pt",
+      "finish": "Kraft (rustic brown)",
+      "description": "Vintage, uncoated; for creative/food businesses.",
+      "upgradeCost": 6
+    },
+    {
+      "id": "P007",
+      "name": "Hemp-Blend",
+      "category": "premium",
+      "thickness": "16pt",
+      "finish": "Soft textured",
+      "description": "Durable, plant-based; modern eco-luxury.",
+      "upgradeCost": 8
+    },
+    {
+      "id": "P008",
+      "name": "Bamboo",
+      "category": "premium",
+      "thickness": "16pt",
+      "finish": "Smooth textured",
+      "description": "Renewable, silky feel; for green/tech firms.",
+      "upgradeCost": 8
+    }
+  ],
+  "upgrades": [
+    {
+      "name": "Rounded Corners",
+      "description": "Quarter-inch rounded edges for a modern look.",
+      "upgradeCost": 2
+    },
+    {
+      "name": "Double-Sided Printing",
+      "description": "Print on both sides for more info.",
+      "upgradeCost": 5
+    }
+  ]
+}

@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Product - Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/admin/dashboard">Admin Dashboard</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/products/add">Add Product</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/logout">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Price Calculator Modal -->
+    <div class="modal fade" id="priceCalculatorModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Price Calculator</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="calculatorForm">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Product</label>
+                                <input type="text" class="form-control" id="productName" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Quantity</label>
+                                <select class="form-select" id="quantitySelect" onchange="calculatePrice()">
+                                    <!-- Quantity options will be populated dynamically -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Size</label>
+                                <select class="form-select" id="sizeSelect" onchange="calculatePrice()">
+                                    <!-- Size options will be populated dynamically -->
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Paper Type</label>
+                                <select class="form-select" id="paperSelect" onchange="calculatePrice()">
+                                    <!-- Paper options will be populated dynamically -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="upgradesContainer" class="mb-3">
+                            <label class="form-label">Additional Options</label>
+                            <!-- Upgrade checkboxes will be populated dynamically -->
+                        </div>
+
+                        <div class="card mt-4">
+                            <div class="card-body price-breakdown">
+                                <h6 class="card-title">Price Breakdown</h6>
+                                <div id="priceBreakdown">
+                                    <!-- Price breakdown will be populated dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" id="notificationToast">
+            <div class="toast-header">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong class="me-auto" id="toastTitle">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="toastMessage"></div>
+        </div>
+    </div>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Edit Product</h2>
+                    <button type="button" class="btn btn-secondary" onclick="openPriceCalculator()">
+                        <i class="bi bi-calculator me-1"></i>
+                        Test Pricing
+                    </button>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <form id="editProductForm" onsubmit="handleSubmit(event)">
+                            <input type="hidden" name="id" value="<%= product.id %>">
+                            
+                            <!-- Basic Information -->
+                            <div class="mb-4">
+                                <h5>Basic Information</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Product Name</label>
+                                            <input type="text" class="form-control" name="name" value="<%= product.name %>" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Description</label>
+                                    <textarea class="form-control" name="description" rows="3" required><%= product.description %></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Sizes -->
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="mb-0">Card Sizes</h5>
+                                    <div>
+                                        <div class="dropdown d-inline-block me-2">
+                                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="sizePresetsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                                Size Presets
+                                            </button>
+                                            <ul class="dropdown-menu" id="sizePresetsList" aria-labelledby="sizePresetsDropdown">
+                                                <!-- Presets will be populated by JavaScript -->
+                                            </ul>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-primary btn-sm me-2" onclick="addSizeEntry()">Add Custom Size</button>
+                                        <button type="button" class="btn btn-outline-success btn-sm" onclick="showAddPresetModal()">Add New Preset</button>
+                                    </div>
+                                </div>
+                                <div id="sizesContainer">
+                                    <% product.sizes.forEach((size, index) => { %>
+                                        <div class="size-entry border rounded p-3 mb-2">
+                                            <div class="row">
+                                                <div class="col-md-2">
+                                                    <label class="form-label">Name</label>
+                                                    <input type="text" class="form-control" name="sizes[<%= index %>][name]" value="<%= size.name %>" required>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="form-label">Width (inches)</label>
+                                                    <input type="number" class="form-control size-width" name="sizes[<%= index %>][width]" value="<%= size.width %>" step="0.125" required>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="form-label">Height (inches)</label>
+                                                    <input type="number" class="form-control size-height" name="sizes[<%= index %>][height]" value="<%= size.height %>" step="0.125" required>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="form-label">Price Multiplier</label>
+                                                    <input type="number" class="form-control" name="sizes[<%= index %>][priceMultiplier]" value="<%= size.priceMultiplier %>" step="0.1" required>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label class="form-label">Metric (mm)</label>
+                                                    <div class="form-control-plaintext">
+                                                        <span class="metric-conversion"><%= (size.width * 25.4).toFixed(1) %> × <%= (size.height * 25.4).toFixed(1) %> mm</span>
+                                                    </div>
+                                                </div>
+                                                <% if (index > 0) { %>
+                                                    <div class="col-md-1 d-flex align-items-end">
+                                                        <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.size-entry').remove()">Remove</button>
+                                                    </div>
+                                                <% } %>
+                                            </div>
+                                        </div>
+                                    <% }); %>
+                                </div>
+                            </div>
+
+                            <!-- Paper Types -->
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="mb-0">Available Papers</h5>
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#paperSelectionModal">
+                                        Select Papers
+                                    </button>
+                                </div>
+                                <div id="selectedPapersContainer" class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Category</th>
+                                                <th>Thickness</th>
+                                                <th>Finish</th>
+                                                <th>Upgrade Cost</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="selectedPapersList">
+                                            <!-- Selected papers will be displayed here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <input type="hidden" name="selectedPaperIds" id="selectedPaperIds" value="<%= product.selectedPaperIds.join(',') %>">
+                            </div>
+
+                            <!-- Paper Selection Modal -->
+                            <div class="modal fade" id="paperSelectionModal" tabindex="-1">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Select Papers for Product</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="checkbox" id="selectAllPapers">
+                                                                </div>
+                                                            </th>
+                                                            <th>Name</th>
+                                                            <th>Category</th>
+                                                            <th>Thickness</th>
+                                                            <th>Finish</th>
+                                                            <th>Cost</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="paperSelectionList">
+                                                        <% papers.forEach(paper => { %>
+                                                            <tr>
+                                                                <td>
+                                                                    <div class="form-check">
+                                                                        <input class="form-check-input paper-checkbox" 
+                                                                               type="checkbox" 
+                                                                               value="<%= paper.id %>"
+                                                                               data-paper-id="<%= paper.id %>"
+                                                                               <%= product.selectedPaperIds.includes(paper.id) ? 'checked' : '' %>>
+                                                                    </div>
+                                                                </td>
+                                                                <td><%= paper.name %></td>
+                                                                <td>
+                                                                    <span class="badge text-capitalize <%= paper.category === 'premium' ? 'bg-primary' : 'bg-success' %>">
+                                                                        <%= paper.category %>
+                                                                    </span>
+                                                                </td>
+                                                                <td><%= paper.thickness %></td>
+                                                                <td><%= paper.finish %></td>
+                                                                <td>$<%= paper.upgradeCost %></td>
+                                                            </tr>
+                                                        <% }); %>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="button" class="btn btn-primary" id="confirmPaperSelectionBtn">Confirm Selection</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Upgrades -->
+                            <div class="mb-4">
+                                <h5>Upgrades</h5>
+                                <div id="upgradesContainer">
+                                    <% product.upgrades.forEach((upgrade, index) => { %>
+                                        <div class="upgrade-entry border rounded p-3 mb-2">
+                                            <div class="row">
+                                                <div class="col-md-5">
+                                                    <label class="form-label">Name</label>
+                                                    <input type="text" class="form-control" name="upgrades[<%= index %>][name]" value="<%= upgrade.name %>" required>
+                                                </div>
+                                                <div class="col-md-5">
+                                                    <label class="form-label">Upgrade Cost</label>
+                                                    <input type="number" class="form-control" name="upgrades[<%= index %>][upgradeCost]" value="<%= upgrade.upgradeCost %>" step="0.01" required>
+                                                </div>
+                                                <div class="col-md-2 d-flex align-items-end">
+                                                    <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.upgrade-entry').remove()">Remove</button>
+                                                </div>
+                                            </div>
+                                            <div class="row mt-2">
+                                                <div class="col-12">
+                                                    <label class="form-label">Description</label>
+                                                    <textarea class="form-control" name="upgrades[<%= index %>][description]" required><%= upgrade.description %></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <% }); %>
+                                </div>
+                                <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="addUpgradeEntry()">
+                                    Add Upgrade Option
+                                </button>
+                            </div>
+
+                            <!-- Quantity Prices -->
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="mb-0">Quantity Pricing</h5>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="addQuantityPrice()">
+                                        Add Quantity Price
+                                    </button>
+                                </div>
+                                <div id="quantityPricesContainer" class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Quantity</th>
+                                                <th>Price ($)</th>
+                                                <th>Price Per Card</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% product.quantityPrices.forEach((qp, index) => { %>
+                                                <tr>
+                                                    <td>
+                                                        <input type="number" class="form-control quantity-input" 
+                                                               name="quantityPrices[<%= index %>][quantity]" 
+                                                               value="<%= qp.quantity %>" required
+                                                               onchange="updatePricePerCard(this)">
+                                                    </td>
+                                                    <td>
+                                                        <input type="number" class="form-control price-input" 
+                                                               name="quantityPrices[<%= index %>][price]" 
+                                                               value="<%= qp.price %>" step="0.01" required
+                                                               onchange="updatePricePerCard(this)">
+                                                    </td>
+                                                    <td>
+                                                        <span class="price-per-card">$<%= (qp.price / qp.quantity).toFixed(3) %></span>
+                                                    </td>
+                                                    <td>
+                                                        <button type="button" class="btn btn-danger btn-sm" onclick="removeQuantityPrice(this)">
+                                                            Remove
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            <% }); %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input type="checkbox" class="form-check-input" name="isActive" <%= product.isActive ? 'checked' : '' %>>
+                                <label class="form-check-label">Active</label>
+                            </div>
+
+                            <div class="d-flex justify-content-between">
+                                <a href="/admin/dashboard" class="btn btn-secondary">Cancel</a>
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Price Calculator Modal -->
+    <div class="modal fade" id="priceCalculatorModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Price Calculator</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="calculatorForm">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Product</label>
+                                <input type="text" class="form-control" id="productName" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Quantity</label>
+                                <select class="form-select" id="quantitySelect" onchange="calculatePrice()">
+                                    <!-- Quantity options will be populated dynamically -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Size</label>
+                                <select class="form-select" id="sizeSelect" onchange="calculatePrice()">
+                                    <!-- Size options will be populated dynamically -->
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Paper Type</label>
+                                <select class="form-select" id="paperSelect" onchange="calculatePrice()">
+                                    <!-- Paper options will be populated dynamically -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="upgradesContainer" class="mb-3">
+                            <label class="form-label">Additional Options</label>
+                            <!-- Upgrade checkboxes will be populated dynamically -->
+                        </div>
+
+                        <div class="card mt-4">
+                            <div class="card-body price-breakdown">
+                                <h6 class="card-title">Price Breakdown</h6>
+                                <div id="priceBreakdown">
+                                    <!-- Price breakdown will be populated dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Initialize global variables -->
+    <script>
+        window.sizeCount = <%= product.sizes.length %>;
+        window.upgradeCount = <%= product.upgrades.length %>;
+        window.quantityPriceCount = <%= product.quantityPrices.length %>;
+        window.selectedPapers = new Map();
+        window.papers = <%- JSON.stringify(papers) %>;
+        window.currentProduct = <%- JSON.stringify(product) %>;
+    </script>
+
+    <!-- Load Bootstrap and calculator -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/calculator.js"></script>
+    <script>
+
+        // Initialize modals and event handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize calculator modal
+            const modalElement = document.getElementById('priceCalculatorModal');
+            if (modalElement) {
+                calculatorModal = new bootstrap.Modal(modalElement);
+            } else {
+                console.error('Calculator modal element not found!');
+            }
+
+            // Initialize paper selection handlers
+            const selectAllCheckbox = document.getElementById('selectAllPapers');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', function() {
+                    try {
+                        const checkboxes = document.querySelectorAll('.paper-checkbox');
+                        checkboxes.forEach(checkbox => {
+                            checkbox.checked = this.checked;
+                            const paperId = checkbox.dataset.paperId;
+                            const paperData = window.papers.find(p => p.id === paperId);
+                            if (!paperData) return;
+                            if (this.checked) {
+                                selectedPapers.set(paperData.id, paperData);
+                            } else {
+                                selectedPapers.delete(paperData.id);
+                            }
+                        });
+                    } catch (error) {
+                        console.error('Error handling select all:', error);
+                        showNotification('Error', 'Failed to select/deselect all papers', 'danger');
+                    }
+                });
+            }
+
+            // Individual paper checkbox handling
+            // Initialize selectedPapers Map from current product's selected papers
+            try {
+                const selectedPaperIds = document.getElementById('selectedPaperIds').value.split(',').filter(id => id.trim());
+                console.log('Initial selected paper IDs:', selectedPaperIds);
+                
+                selectedPaperIds.forEach(id => {
+                    const paper = window.papers.find(p => p.id === id);
+                    if (paper) {
+                        selectedPapers.set(paper.id, paper);
+                    }
+                });
+                
+                console.log('Initialized selectedPapers:', Array.from(selectedPapers.values()));
+            } catch (error) {
+                console.error('Error initializing selected papers:', error);
+            }
+
+            // Initialize paper checkboxes
+            document.querySelectorAll('.paper-checkbox').forEach(checkbox => {
+                try {
+                    const paperId = checkbox.dataset.paperId;
+                    const paperData = window.papers.find(p => p.id === paperId);
+                    if (!paperData) return;
+
+                    // Set initial checked state
+                    checkbox.checked = selectedPapers.has(paperData.id);
+
+                    // Add change handler
+                    checkbox.addEventListener('change', function() {
+                        try {
+                            const id = this.dataset.paperId;
+                            const data = window.papers.find(p => p.id === id);
+                            if (!data) return;
+                            console.log('Paper checkbox changed:', data.name, this.checked);
+
+                            if (this.checked) {
+                                selectedPapers.set(data.id, data);
+                            } else {
+                                selectedPapers.delete(data.id);
+                            }
+
+                            // Update the table immediately when selection changes
+                            updateSelectedPapersTable();
+
+                            console.log('Updated selected papers:', Array.from(selectedPapers.values()));
+                        } catch (error) {
+                            console.error('Error handling paper checkbox change:', error);
+                            showNotification('Error', 'Failed to update paper selection', 'danger');
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error initializing paper checkbox:', error);
+                    showNotification('Error', 'Failed to initialize paper selection', 'danger');
+                }
+            });
+        });
+
+        // Paper selection confirmation
+        function confirmPaperSelection() {
+            try {
+                console.log('Confirming paper selection...');
+                
+                // Get selected paper IDs
+                const selectedIds = Array.from(selectedPapers.keys());
+                console.log('Selected paper IDs:', selectedIds);
+                
+                // Update hidden input
+                const hiddenInput = document.getElementById('selectedPaperIds');
+                if (!hiddenInput) {
+                    throw new Error('Selected paper IDs input not found');
+                }
+                hiddenInput.value = selectedIds.join(',');
+                
+                // Update the visible table
+                updateSelectedPapersTable();
+                
+                // Move focus away from modal controls before hiding to avoid aria-hidden focus issue
+                if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                    document.activeElement.blur();
+                }
+
+                // Close the modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('paperSelectionModal'));
+                if (modal) {
+                    modal.hide();
+                } else {
+                    console.warn('Modal instance not found');
+                }
+                
+                // After hide, return focus to the trigger button
+                setTimeout(() => {
+                    const triggerBtn = document.querySelector('button[data-bs-target="#paperSelectionModal"]');
+                    if (triggerBtn) {
+                        triggerBtn.focus();
+                    }
+                }, 0);
+
+                // Show confirmation
+                showNotification('Success', 'Paper selection updated successfully', 'success');
+            } catch (error) {
+                console.error('Error confirming paper selection:', error);
+                showNotification('Error', 'Failed to update paper selection: ' + error.message, 'danger');
+            }
+        }
+
+        // Update selected papers table
+        function updateSelectedPapersTable() {
+            console.log('Updating selected papers table');
+            const tbody = document.getElementById('selectedPapersList');
+            if (!tbody) {
+                console.error('Selected papers table not found');
+                return;
+            }
+            
+            tbody.innerHTML = '';
+            
+            // Get selected paper IDs
+            const selectedIds = Array.from(selectedPapers.keys());
+            console.log('Selected paper IDs:', selectedIds);
+            
+            // Find corresponding paper data from window.papers
+            const selectedPapersData = window.papers.filter(paper => selectedIds.includes(paper.id));
+            console.log('Selected papers data:', selectedPapersData);
+            
+            selectedPapersData.forEach(paper => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${paper.name}</td>
+                    <td><span class="badge text-capitalize ${paper.category === 'premium' ? 'bg-primary' : 'bg-success'}">${paper.category}</span></td>
+                    <td>${paper.thickness}</td>
+                    <td>${paper.finish}</td>
+                    <td>$${paper.upgradeCost}</td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            // Update hidden input
+            const hiddenInput = document.getElementById('selectedPaperIds');
+            if (hiddenInput) {
+                hiddenInput.value = selectedIds.join(',');
+                console.log('Updated hidden input value:', hiddenInput.value);
+            } else {
+                console.error('Selected paper IDs input not found');
+            }
+        }
+
+        // Initialize table and event handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize selected papers table
+            updateSelectedPapersTable();
+
+            // Add confirm button handler
+            // Add confirm button handler
+            const confirmBtn = document.getElementById('confirmPaperSelectionBtn');
+            if (confirmBtn) {
+                confirmBtn.addEventListener('click', confirmPaperSelection);
+            } else {
+                console.error('Confirm paper selection button not found');
+            }
+        });
+
+        // Toast notification helper
+        function showNotification(title, message, type = 'success') {
+            const toast = document.getElementById('notificationToast');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastTitle.textContent = title;
+            toastMessage.textContent = message;
+            
+            toast.classList.remove('bg-success', 'bg-danger', 'bg-info');
+            toast.classList.add(`bg-${type}`);
+            toast.classList.add('text-white');
+            
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+        }
+
+        // Form submission handler
+        function handleSubmit(event) {
+            event.preventDefault();
+            
+            try {
+                const form = event.target;
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+
+                // Get selected paper IDs
+                const selectedPaperIdsValue = document.getElementById('selectedPaperIds').value;
+                data.selectedPaperIds = selectedPaperIdsValue ? selectedPaperIdsValue.split(',').filter(id => id.trim()) : [];
+                
+                // Set active status
+                data.isActive = form.isActive.checked;
+
+                // Collect sizes
+                data.sizes = [];
+                document.querySelectorAll('.size-entry').forEach((entry, index) => {
+                    try {
+                        const size = {
+                            name: entry.querySelector('input[name^="sizes"][name$="[name]"]').value,
+                            width: parseFloat(entry.querySelector('input[name$="[width]"]').value),
+                            height: parseFloat(entry.querySelector('input[name$="[height]"]').value),
+                            priceMultiplier: parseFloat(entry.querySelector('input[name$="[priceMultiplier]"]').value)
+                        };
+                        
+                        // Validate size data
+                        if (!size.name || isNaN(size.width) || isNaN(size.height) || isNaN(size.priceMultiplier)) {
+                            throw new Error(`Invalid size data at index ${index}`);
+                        }
+                        
+                        data.sizes.push(size);
+                    } catch (error) {
+                        throw new Error(`Error processing size at index ${index}: ${error.message}`);
+                    }
+                });
+
+                if (data.sizes.length === 0) {
+                    throw new Error('At least one size is required');
+                }
+
+                // Collect upgrades
+                data.upgrades = [];
+                document.querySelectorAll('.upgrade-entry').forEach((entry, index) => {
+                    try {
+                        const upgrade = {
+                            name: entry.querySelector('input[name^="upgrades"][name$="[name]"]').value,
+                            upgradeCost: parseFloat(entry.querySelector('input[name$="[upgradeCost]"]').value),
+                            description: entry.querySelector('textarea[name$="[description]"]').value
+                        };
+                        
+                        // Validate upgrade data
+                        if (!upgrade.name || !upgrade.description || isNaN(upgrade.upgradeCost)) {
+                            throw new Error(`Invalid upgrade data at index ${index}`);
+                        }
+                        
+                        data.upgrades.push(upgrade);
+                    } catch (error) {
+                        throw new Error(`Error processing upgrade at index ${index}: ${error.message}`);
+                    }
+                });
+
+                // Collect quantity prices
+                data.quantityPrices = [];
+                document.querySelectorAll('#quantityPricesContainer tbody tr').forEach((row, index) => {
+                    try {
+                        const quantityPrice = {
+                            quantity: parseInt(row.querySelector('.quantity-input').value),
+                            price: parseFloat(row.querySelector('.price-input').value)
+                        };
+                        
+                        // Validate quantity price data
+                        if (isNaN(quantityPrice.quantity) || isNaN(quantityPrice.price) || quantityPrice.quantity <= 0 || quantityPrice.price < 0) {
+                            throw new Error(`Invalid quantity price data at index ${index}`);
+                        }
+                        
+                        data.quantityPrices.push(quantityPrice);
+                    } catch (error) {
+                        throw new Error(`Error processing quantity price at index ${index}: ${error.message}`);
+                    }
+                });
+
+                if (data.quantityPrices.length === 0) {
+                    throw new Error('At least one quantity price is required');
+                }
+
+                // Validate required fields
+                if (!data.name || !data.description) {
+                    throw new Error('Name and description are required');
+                }
+
+                console.log('Submitting data:', data);
+
+                // Send the data
+                fetch(`/admin/products/${data.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(errorData => {
+                            throw new Error(errorData.message || 'Failed to save changes');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(result => {
+                    showNotification('Success', 'Changes saved successfully');
+                    setTimeout(() => window.location.href = '/admin/dashboard', 1000);
+                })
+                .catch(error => {
+                    console.error('Error saving changes:', error);
+                    showNotification('Error', error.message, 'danger');
+                });
+            } catch (error) {
+                console.error('Error preparing form data:', error);
+                showNotification('Error', error.message, 'danger');
+            }
+        }
+
+        // Include all the JavaScript from add-product.ejs here (unescaped)
+        <%- include('add-product-js') %>
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            updatePresetsDropdown();
+            updateSelectedPapersTable();
+            document.querySelectorAll('.quantity-input').forEach(input => {
+                updatePricePerCard(input);
+            });
+            document.querySelectorAll('.size-entry').forEach(entry => {
+                updateMetricConversion(entry);
+            });
+        });
+    </script>
+</body>
+</html>

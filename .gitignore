@@ -1,0 +1,27 @@
+node_modules/
+
+# logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# env
+.env
+.env.*
+
+# editors
+.vscode/
+.idea/
+
+# system files
+.DS_Store
+Thumbs.db
+
+# build outputs
+build/
+dist/
+.next/
+out/
+coverage/

@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Product - Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/admin/dashboard">Admin Dashboard</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/admin/products/add">Add Product</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/logout">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="mb-4">Add New Product</h2>
+                <div class="card">
+                    <div class="card-body">
+                        <div id="errorAlert" class="alert alert-danger d-none" role="alert">
+                            <strong>Fix the following:</strong>
+                            <ul id="errorList" class="mb-0"></ul>
+                        </div>
+                        <form action="/admin/products" method="POST" id="addProductForm">
+                            <!-- Basic Information -->
+                            <div class="mb-4">
+                                <h5>Basic Information</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Product Name</label>
+                                            <input type="text" class="form-control" name="name" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Description</label>
+                                    <textarea class="form-control" name="description" rows="3" required></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Sizes -->
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="mb-0">Card Sizes</h5>
+                                    <div>
+                                        <div class="dropdown d-inline-block me-2">
+                                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="sizePresetsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                                Size Presets
+                                            </button>
+                                            <ul class="dropdown-menu" id="sizePresetsList" aria-labelledby="sizePresetsDropdown">
+                                                <!-- Presets will be populated by JavaScript -->
+                                            </ul>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-primary btn-sm me-2" onclick="addSizeEntry()">Add Custom Size</button>
+                                        <button type="button" class="btn btn-outline-success btn-sm" onclick="showAddPresetModal()">Add New Preset</button>
+                                    </div>
+
+                                    <!-- Add Preset Modal -->
+                                    <div class="modal fade" id="addPresetModal" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Add Size Preset</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <form id="presetForm">
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Preset Name</label>
+                                                            <input type="text" class="form-control" id="presetName">
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-md-6">
+                                                                <div class="mb-3">
+                                                                    <label class="form-label">Width (inches)</label>
+                                                                    <input type="number" class="form-control" id="presetWidth" step="0.125">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="mb-3">
+                                                                    <label class="form-label">Height (inches)</label>
+                                                                    <input type="number" class="form-control" id="presetHeight" step="0.125">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Price Multiplier</label>
+                                                            <input type="number" class="form-control" id="presetMultiplier" step="any" value="1">
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="button" class="btn btn-primary" onclick="saveNewPreset()">Save Preset</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="sizesContainer">
+                                    <div class="size-entry border rounded p-3 mb-2">
+                                        <div class="row">
+                                            <div class="col-md-2">
+                                                <label class="form-label">Name</label>
+                                                <input type="text" class="form-control" name="sizes[0][name]" placeholder="e.g., Standard" required>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label">Width (inches)</label>
+                                                <input type="number" class="form-control size-width" name="sizes[0][width]" step="0.125" required>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label">Height (inches)</label>
+                                                <input type="number" class="form-control size-height" name="sizes[0][height]" step="0.125" required>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label">Price Multiplier</label>
+                                                <input type="number" class="form-control" name="sizes[0][priceMultiplier]" step="0.1" required>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label">Metric (mm)</label>
+                                                <div class="form-control-plaintext">
+                                                    <span class="metric-conversion">0 × 0 mm</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Paper Types -->
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="mb-0">Available Papers</h5>
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#paperSelectionModal">
+                                        Select Papers
+                                    </button>
+                                </div>
+                                <div id="selectedPapersContainer" class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Category</th>
+                                                <th>Thickness</th>
+                                                <th>Finish</th>
+                                                <th>Upgrade Cost</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="selectedPapersList">
+                                            <!-- Selected papers will be displayed here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- Hidden input to store selected paper IDs -->
+                                <input type="hidden" name="selectedPaperIds" id="selectedPaperIds" value="">
+                            </div>
+
+                            <!-- Paper Selection Modal -->
+                            <div class="modal fade" id="paperSelectionModal" tabindex="-1">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Select Papers for Product</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="checkbox" id="selectAllPapers">
+                                                                </div>
+                                                            </th>
+                                                            <th>Name</th>
+                                                            <th>Category</th>
+                                                            <th>Thickness</th>
+                                                            <th>Finish</th>
+                                                            <th>Cost</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <% papers.forEach(paper => { %>
+                                                            <tr>
+                                                                <td>
+                                                                    <div class="form-check">
+                                                                        <input class="form-check-input paper-checkbox" 
+                                                                               type="checkbox" 
+                                                                               value="<%= paper.id %>"
+                                                                               data-paper-id="<%= paper.id %>">
+                                                                    </div>
+                                                                </td>
+                                                                <td><%= paper.name %></td>
+                                                                <td><span class="badge <%= paper.category === 'premium' ? 'bg-primary' : 'bg-success' %>">
+                                                                    <%= paper.category %>
+                                                                </span></td>
+                                                                <td><%= paper.thickness %></td>
+                                                                <td><%= paper.finish %></td>
+                                                                <td>$<%= paper.upgradeCost %></td>
+                                                            </tr>
+                                                        <% }); %>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="button" class="btn btn-primary" onclick="confirmPaperSelection()">Confirm Selection</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Upgrades -->
+                            <div class="mb-4">
+                                <h5>Upgrades</h5>
+                                <div id="upgradesContainer">
+                                    <% upgrades.forEach((upgrade, index) => { %>
+                                        <div class="upgrade-entry border rounded p-3 mb-2">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Name</label>
+                                                    <input type="text" class="form-control" name="upgrades[<%= index %>][name]" value="<%= upgrade.name %>" required>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Upgrade Cost</label>
+                                                    <input type="number" class="form-control" name="upgrades[<%= index %>][upgradeCost]" value="<%= upgrade.upgradeCost %>" step="0.01" required>
+                                                </div>
+                                            </div>
+                                            <div class="row mt-2">
+                                                <div class="col-12">
+                                                    <label class="form-label">Description</label>
+                                                    <textarea class="form-control" name="upgrades[<%= index %>][description]" required><%= upgrade.description %></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <% }); %>
+                                </div>
+                            </div>
+
+                            <!-- Quantity Prices -->
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="mb-0">Quantity Pricing</h5>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="addQuantityPrice()">
+                                        Add Quantity Price
+                                    </button>
+                                </div>
+                                <div id="quantityPricesContainer" class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Quantity</th>
+                                                <th>Price ($)</th>
+                                                <th>Price Per Card</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <input type="number" class="form-control quantity-input" 
+                                                           name="quantityPrices[0][quantity]" 
+                                                           value="50" required
+                                                           onchange="updatePricePerCard(this)">
+                                                </td>
+                                                <td>
+                                                    <input type="number" class="form-control price-input" 
+                                                           name="quantityPrices[0][price]" 
+                                                           value="15" step="0.01" required
+                                                           onchange="updatePricePerCard(this)">
+                                                </td>
+                                                <td>
+                                                    <span class="price-per-card">$0.30</span>
+                                                </td>
+                                                <td>
+                                                    <button type="button" class="btn btn-danger btn-sm" onclick="removeQuantityPrice(this)">
+                                                        Remove
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <input type="number" class="form-control quantity-input" 
+                                                           name="quantityPrices[1][quantity]" 
+                                                           value="100" required
+                                                           onchange="updatePricePerCard(this)">
+                                                </td>
+                                                <td>
+                                                    <input type="number" class="form-control price-input" 
+                                                           name="quantityPrices[1][price]" 
+                                                           value="20" step="0.01" required
+                                                           onchange="updatePricePerCard(this)">
+                                                </td>
+                                                <td>
+                                                    <span class="price-per-card">$0.20</span>
+                                                </td>
+                                                <td>
+                                                    <button type="button" class="btn btn-danger btn-sm" onclick="removeQuantityPrice(this)">
+                                                        Remove
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input type="checkbox" class="form-check-input" name="isActive" checked>
+                                <label class="form-check-label">Active</label>
+                            </div>
+
+                            <div class="d-flex justify-content-between">
+                                <a href="/admin/dashboard" class="btn btn-secondary">Cancel</a>
+                                <button type="submit" class="btn btn-primary" id="createProductBtn">Create Product</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Expose papers for calculator and selection helpers
+        window.papers = <%- JSON.stringify(papers) %>;
+
+        let sizeCount = 1;
+        let upgradeCount = 1;
+        let selectedPapers = new Map();
+        let quantityPriceCount = 2; // Start at 2 since we have two default entries
+
+        // Paper selection handling
+        document.getElementById('selectAllPapers').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.paper-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+                const id = checkbox.dataset.paperId;
+                const paperData = window.papers.find(p => p.id === id);
+                if (!paperData) return;
+                if (this.checked) {
+                    selectedPapers.set(paperData.id, paperData);
+                } else {
+                    selectedPapers.delete(paperData.id);
+                }
+            });
+            updateSelectedPapersTable();
+        });
+
+        // Individual paper checkbox handling
+        document.querySelectorAll('.paper-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const id = this.dataset.paperId;
+                const paperData = window.papers.find(p => p.id === id);
+                if (!paperData) return;
+                if (this.checked) {
+                    selectedPapers.set(paperData.id, paperData);
+                } else {
+                    selectedPapers.delete(paperData.id);
+                }
+                updateSelectedPapersTable();
+            });
+        });
+
+        function confirmPaperSelection() {
+            updateSelectedPapersTable();
+            document.getElementById('selectedPaperIds').value = Array.from(selectedPapers.keys()).join(',');
+            // Move focus away from a control before hiding to avoid aria-hidden focus issue
+            if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                document.activeElement.blur();
+            }
+            const modal = bootstrap.Modal.getInstance(document.getElementById('paperSelectionModal'));
+            modal.hide();
+            // Return focus to the trigger button
+            setTimeout(() => {
+                const triggerBtn = document.querySelector('button[data-bs-target="#paperSelectionModal"]');
+                if (triggerBtn) triggerBtn.focus();
+            }, 0);
+        }
+
+        function updateSelectedPapersTable() {
+            const tbody = document.getElementById('selectedPapersList');
+            tbody.innerHTML = '';
+            
+            selectedPapers.forEach(paper => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${paper.name}</td>
+                    <td><span class="badge ${paper.category === 'premium' ? 'bg-primary' : 'bg-success'}">${paper.category}</span></td>
+                    <td>${paper.thickness}</td>
+                    <td>${paper.finish}</td>
+                    <td>$${paper.upgradeCost}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        const INCH_TO_MM = 25.4;
+        
+        // Initialize size presets from localStorage or use defaults
+        let sizePresets = JSON.parse(localStorage.getItem('sizePresets')) || {
+            standard: { name: 'Standard US', width: 3.5, height: 2, multiplier: 1 },
+            euro: { name: 'European', width: 3.346, height: 2.165, multiplier: 1 }, // 85mm × 55mm
+            square: { name: 'Square', width: 2.5, height: 2.5, multiplier: 1.1 },
+            mini: { name: 'Mini', width: 2.5, height: 1.5, multiplier: 0.8 },
+            folded: { name: 'Folded', width: 3.5, height: 4, multiplier: 1.75 }
+        };
+
+        // Function to save presets to localStorage
+        function savePresets() {
+            localStorage.setItem('sizePresets', JSON.stringify(sizePresets));
+        }
+
+        // Function to update the presets dropdown
+        function updatePresetsDropdown() {
+            const presetsList = document.getElementById('sizePresetsList');
+            presetsList.innerHTML = '';
+            
+            Object.entries(sizePresets).forEach(([key, preset]) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div class="dropdown-item d-flex justify-content-between align-items-center">
+                        <a href="#" class="text-decoration-none text-dark flex-grow-1" onclick="applyPreset('${key}'); return false;">
+                            ${preset.name} (${preset.width}" × ${preset.height}")
+                        </a>
+                        <button class="btn btn-link text-danger p-0 ms-2" 
+                                onclick="deletePreset('${key}'); return false;">
+                            <small>Delete</small>
+                        </button>
+                    </div>
+                `;
+                presetsList.appendChild(li);
+            });
+        }
+
+        // Function to show the add preset modal
+        function showAddPresetModal() {
+            const modal = new bootstrap.Modal(document.getElementById('addPresetModal'));
+            modal.show();
+        }
+
+        // Function to save a new preset
+        function saveNewPreset() {
+            const name = document.getElementById('presetName').value.trim();
+            const width = parseFloat(document.getElementById('presetWidth').value);
+            const height = parseFloat(document.getElementById('presetHeight').value);
+            const multiplier = parseFloat(document.getElementById('presetMultiplier').value);
+
+            if (!name || !width || !height || !multiplier) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            const key = name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+            
+            sizePresets[key] = {
+                name: name,
+                width: width,
+                height: height,
+                multiplier: multiplier
+            };
+
+            savePresets();
+            updatePresetsDropdown();
+
+            // Close modal and reset form
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addPresetModal'));
+            modal.hide();
+            document.getElementById('presetForm').reset();
+        }
+
+        // Function to delete a preset
+        function deletePreset(key) {
+            if (confirm(`Are you sure you want to delete the "${sizePresets[key].name}" preset?`)) {
+                delete sizePresets[key];
+                savePresets();
+                updatePresetsDropdown();
+            }
+        }
+
+        function inchesToMm(inches) {
+            return (inches * INCH_TO_MM).toFixed(1);
+        }
+
+        function updateMetricConversion(sizeEntry) {
+            const width = sizeEntry.querySelector('.size-width').value;
+            const height = sizeEntry.querySelector('.size-height').value;
+            const conversionSpan = sizeEntry.querySelector('.metric-conversion');
+            
+            if (width && height) {
+                const widthMm = inchesToMm(width);
+                const heightMm = inchesToMm(height);
+                conversionSpan.textContent = `${widthMm} × ${heightMm} mm`;
+            } else {
+                conversionSpan.textContent = '0 × 0 mm';
+            }
+        }
+
+        function applyPreset(presetKey) {
+            const presetData = sizePresets[presetKey];
+            if (!presetData) return;
+
+            const firstSizeEntry = document.querySelector('.size-entry');
+            if (!firstSizeEntry) {
+                addSizeEntry();
+                return;
+            }
+
+            const nameInput = firstSizeEntry.querySelector('input[name$="[name]"]');
+            const widthInput = firstSizeEntry.querySelector('input[name$="[width]"]');
+            const heightInput = firstSizeEntry.querySelector('input[name$="[height]"]');
+            const multiplierInput = firstSizeEntry.querySelector('input[name$="[priceMultiplier]"]');
+
+            nameInput.value = presetData.name;
+            widthInput.value = presetData.width;
+            heightInput.value = presetData.height;
+            multiplierInput.value = presetData.multiplier;
+
+            updateMetricConversion(firstSizeEntry);
+        }
+
+        // Initialize the presets dropdown when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            updatePresetsDropdown();
+        });
+
+        // Add event listeners for size input changes
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('size-width') || e.target.classList.contains('size-height')) {
+                updateMetricConversion(e.target.closest('.size-entry'));
+            }
+        });
+
+        function addSizeEntry() {
+            const container = document.getElementById('sizesContainer');
+            const template = `
+                <div class="size-entry border rounded p-3 mb-2">
+                    <div class="row">
+                        <div class="col-md-2">
+                            <label class="form-label">Name</label>
+                            <input type="text" class="form-control" name="sizes[${sizeCount}][name]" placeholder="e.g., Standard" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Width (inches)</label>
+                            <input type="number" class="form-control size-width" name="sizes[${sizeCount}][width]" step="0.125" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Height (inches)</label>
+                            <input type="number" class="form-control size-height" name="sizes[${sizeCount}][height]" step="0.125" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Price Multiplier</label>
+                            <input type="number" class="form-control" name="sizes[${sizeCount}][priceMultiplier]" step="0.1" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Metric (mm)</label>
+                            <div class="form-control-plaintext">
+                                <span class="metric-conversion">0 × 0 mm</span>
+                            </div>
+                        </div>
+                        <div class="col-md-1 d-flex align-items-end">
+                            <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.size-entry').remove()">Remove</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', template);
+            sizeCount++;
+        }
+
+        function addPaperTypeEntry() {
+            const container = document.getElementById('paperTypesContainer');
+            const template = `
+                <div class="paper-type-entry border rounded p-3 mb-2">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <label class="form-label">Name</label>
+                            <input type="text" class="form-control" name="paperTypes[${paperTypeCount}][name]" required>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label">Category</label>
+                            <select class="form-select" name="paperTypes[${paperTypeCount}][category]" required>
+                                <option value="standard">Standard</option>
+                                <option value="premium">Premium</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.paper-type-entry').remove()">Remove</button>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-4">
+                            <label class="form-label">Thickness</label>
+                            <input type="text" class="form-control" name="paperTypes[${paperTypeCount}][thickness]" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Finish</label>
+                            <input type="text" class="form-control" name="paperTypes[${paperTypeCount}][finish]" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Upgrade Cost</label>
+                            <input type="number" class="form-control" name="paperTypes[${paperTypeCount}][upgradeCost]" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" name="paperTypes[${paperTypeCount}][description]" required></textarea>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', template);
+            paperTypeCount++;
+        }
+
+        function addUpgradeEntry() {
+            const container = document.getElementById('upgradesContainer');
+            const template = `
+                <div class="upgrade-entry border rounded p-3 mb-2">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <label class="form-label">Name</label>
+                            <input type="text" class="form-control" name="upgrades[${upgradeCount}][name]" required>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label">Upgrade Cost</label>
+                            <input type="number" class="form-control" name="upgrades[${upgradeCount}][upgradeCost]" step="0.01" required>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.upgrade-entry').remove()">Remove</button>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" name="upgrades[${upgradeCount}][description]" required></textarea>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', template);
+            upgradeCount++;
+        }
+        function addQuantityPrice() {
+            const tbody = document.querySelector('#quantityPricesContainer tbody');
+            const template = `
+                <tr>
+                    <td>
+                        <input type="number" class="form-control quantity-input" 
+                               name="quantityPrices[${quantityPriceCount}][quantity]" 
+                               required
+                               onchange="updatePricePerCard(this)">
+                    </td>
+                    <td>
+                        <input type="number" class="form-control price-input" 
+                               name="quantityPrices[${quantityPriceCount}][price]" 
+                               step="0.01" required
+                               onchange="updatePricePerCard(this)">
+                    </td>
+                    <td>
+                        <span class="price-per-card">$0.00</span>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeQuantityPrice(this)">
+                            Remove
+                        </button>
+                    </td>
+                </tr>
+            `;
+            tbody.insertAdjacentHTML('beforeend', template);
+            quantityPriceCount++;
+            sortQuantityPrices();
+        }
+
+        function removeQuantityPrice(button) {
+            const row = button.closest('tr');
+            row.remove();
+            updateQuantityPriceIndexes();
+        }
+
+        function updatePricePerCard(input) {
+            const row = input.closest('tr');
+            const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
+            const price = parseFloat(row.querySelector('.price-input').value) || 0;
+            const pricePerCard = quantity > 0 ? (price / quantity).toFixed(3) : '0.00';
+            row.querySelector('.price-per-card').textContent = `$${pricePerCard}`;
+            sortQuantityPrices();
+        }
+
+        function sortQuantityPrices() {
+            const tbody = document.querySelector('#quantityPricesContainer tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            
+            rows.sort((a, b) => {
+                const quantityA = parseInt(a.querySelector('.quantity-input').value) || 0;
+                const quantityB = parseInt(b.querySelector('.quantity-input').value) || 0;
+                return quantityA - quantityB;
+            });
+
+            rows.forEach(row => tbody.appendChild(row));
+            updateQuantityPriceIndexes();
+        }
+
+        function updateQuantityPriceIndexes() {
+            const rows = document.querySelectorAll('#quantityPricesContainer tbody tr');
+            rows.forEach((row, index) => {
+                row.querySelector('.quantity-input').name = `quantityPrices[${index}][quantity]`;
+                row.querySelector('.price-input').name = `quantityPrices[${index}][price]`;
+            });
+            quantityPriceCount = rows.length;
+        }
+
+        // Initialize price per card calculations
+        document.querySelectorAll('.quantity-input').forEach(input => {
+            updatePricePerCard(input);
+        });
+
+        // Let the form submit normally to the server
+
+        // Debug instrumentation (does not prevent submit)
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('addProductForm');
+            const btn = document.getElementById('createProductBtn');
+            if (btn) {
+                btn.addEventListener('click', function() {
+                    console.log('DEBUG: Create button clicked');
+                    debugger; // Click breakpoint
+                    if (form) {
+                        const isValid = form.checkValidity();
+                        console.log('DEBUG: form.checkValidity() =', isValid);
+                        if (!isValid) {
+                            console.log('DEBUG: Invalid fields:');
+                            Array.from(form.querySelectorAll(':invalid')).forEach((el) => {
+                                const name = el.getAttribute('name') || el.id || el.tagName;
+                                console.log(' -', name, 'value=', el.value);
+                            });
+                            form.reportValidity();
+                        }
+                    }
+                });
+            }
+            if (form) {
+                form.addEventListener('submit', function() {
+                    console.log('DEBUG: Form submit event fired');
+                    debugger; // Submit breakpoint
+                });
+            } else {
+                console.log('DEBUG: addProductForm not found');
+            }
+        });
+    </script>
+</body>
+</html>

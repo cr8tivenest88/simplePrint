@@ -1,0 +1,479 @@
+// Size presets handling
+const INCH_TO_MM = 25.4;
+
+// Initialize size presets from localStorage or use defaults
+let sizePresets = JSON.parse(localStorage.getItem('sizePresets')) || {
+    standard: { name: 'Standard US', width: 3.5, height: 2, multiplier: 1 },
+    euro: { name: 'European', width: 3.346, height: 2.165, multiplier: 1 }, // 85mm × 55mm
+    square: { name: 'Square', width: 2.5, height: 2.5, multiplier: 1.1 },
+    mini: { name: 'Mini', width: 2.5, height: 1.5, multiplier: 0.8 },
+    folded: { name: 'Folded', width: 3.5, height: 4, multiplier: 1.75 }
+};
+
+// Function to save presets to localStorage
+function savePresets() {
+    localStorage.setItem('sizePresets', JSON.stringify(sizePresets));
+}
+
+// Function to update the presets dropdown
+function updatePresetsDropdown() {
+    const presetsList = document.getElementById('sizePresetsList');
+    presetsList.innerHTML = '';
+    
+    Object.entries(sizePresets).forEach(([key, preset]) => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+            <div class="dropdown-item d-flex justify-content-between align-items-center">
+                <a href="#" class="text-decoration-none text-dark flex-grow-1" onclick="applyPreset('${key}'); return false;">
+                    ${preset.name} (${preset.width}" × ${preset.height}")
+                </a>
+                <button class="btn btn-link text-danger p-0 ms-2" 
+                        onclick="deletePreset('${key}'); return false;">
+                    <small>Delete</small>
+                </button>
+            </div>
+        `;
+        presetsList.appendChild(li);
+    });
+}
+
+// Function to show the add preset modal
+function showAddPresetModal() {
+    const modal = new bootstrap.Modal(document.getElementById('addPresetModal'));
+    modal.show();
+}
+
+// Function to save a new preset
+function saveNewPreset() {
+    const name = document.getElementById('presetName').value.trim();
+    const width = parseFloat(document.getElementById('presetWidth').value);
+    const height = parseFloat(document.getElementById('presetHeight').value);
+    const multiplier = parseFloat(document.getElementById('presetMultiplier').value);
+
+    if (!name || !width || !height || !multiplier) {
+        alert('Please fill in all fields');
+        return;
+    }
+
+    const key = name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    
+    sizePresets[key] = {
+        name: name,
+        width: width,
+        height: height,
+        multiplier: multiplier
+    };
+
+    savePresets();
+    updatePresetsDropdown();
+
+    // Close modal and reset form
+    const modal = bootstrap.Modal.getInstance(document.getElementById('addPresetModal'));
+    modal.hide();
+    document.getElementById('presetForm').reset();
+}
+
+// Function to delete a preset
+function deletePreset(key) {
+    if (confirm(`Are you sure you want to delete the "${sizePresets[key].name}" preset?`)) {
+        delete sizePresets[key];
+        savePresets();
+        updatePresetsDropdown();
+    }
+}
+
+// Paper selection handling
+document.getElementById('selectAllPapers').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('.paper-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = this.checked;
+        const paperData = JSON.parse(checkbox.dataset.paper);
+        if (this.checked) {
+            selectedPapers.set(paperData.id, paperData);
+        } else {
+            selectedPapers.delete(paperData.id);
+        }
+    });
+    updateSelectedPapersTable();
+});
+
+// Individual paper checkbox handling
+document.querySelectorAll('.paper-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        const paperData = JSON.parse(this.dataset.paper);
+        if (this.checked) {
+            selectedPapers.set(paperData.id, paperData);
+        } else {
+            selectedPapers.delete(paperData.id);
+        }
+        updateSelectedPapersTable();
+    });
+});
+
+function confirmPaperSelection() {
+    updateSelectedPapersTable();
+    document.getElementById('selectedPaperIds').value = Array.from(selectedPapers.keys()).join(',');
+    const modal = bootstrap.Modal.getInstance(document.getElementById('paperSelectionModal'));
+    modal.hide();
+}
+
+function updateSelectedPapersTable() {
+    const tbody = document.getElementById('selectedPapersList');
+    tbody.innerHTML = '';
+    
+    selectedPapers.forEach(paper => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${paper.name}</td>
+            <td><span class="badge ${paper.category === 'premium' ? 'bg-primary' : 'bg-success'}">${paper.category}</span></td>
+            <td>${paper.thickness}</td>
+            <td>${paper.finish}</td>
+            <td>$${paper.upgradeCost}</td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function inchesToMm(inches) {
+    return (inches * INCH_TO_MM).toFixed(1);
+}
+
+function updateMetricConversion(sizeEntry) {
+    const width = sizeEntry.querySelector('.size-width').value;
+    const height = sizeEntry.querySelector('.size-height').value;
+    const conversionSpan = sizeEntry.querySelector('.metric-conversion');
+    
+    if (width && height) {
+        const widthMm = inchesToMm(width);
+        const heightMm = inchesToMm(height);
+        conversionSpan.textContent = `${widthMm} × ${heightMm} mm`;
+    } else {
+        conversionSpan.textContent = '0 × 0 mm';
+    }
+}
+
+function applyPreset(presetKey) {
+    const presetData = sizePresets[presetKey];
+    if (!presetData) return;
+
+    const firstSizeEntry = document.querySelector('.size-entry');
+    if (!firstSizeEntry) {
+        addSizeEntry();
+        return;
+    }
+
+    const nameInput = firstSizeEntry.querySelector('input[name$="[name]"]');
+    const widthInput = firstSizeEntry.querySelector('input[name$="[width]"]');
+    const heightInput = firstSizeEntry.querySelector('input[name$="[height]"]');
+    const multiplierInput = firstSizeEntry.querySelector('input[name$="[priceMultiplier]"]');
+
+    nameInput.value = presetData.name;
+    widthInput.value = presetData.width;
+    heightInput.value = presetData.height;
+    multiplierInput.value = presetData.multiplier;
+
+    updateMetricConversion(firstSizeEntry);
+}
+
+// Add event listeners for size input changes
+document.addEventListener('input', function(e) {
+    if (e.target.classList.contains('size-width') || e.target.classList.contains('size-height')) {
+        updateMetricConversion(e.target.closest('.size-entry'));
+    }
+});
+
+function addSizeEntry() {
+    const container = document.getElementById('sizesContainer');
+    const template = `
+        <div class="size-entry border rounded p-3 mb-2">
+            <div class="row">
+                <div class="col-md-2">
+                    <label class="form-label">Name</label>
+                    <input type="text" class="form-control" name="sizes[${sizeCount}][name]" placeholder="e.g., Standard" required>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Width (inches)</label>
+                    <input type="number" class="form-control size-width" name="sizes[${sizeCount}][width]" step="0.125" required>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Height (inches)</label>
+                    <input type="number" class="form-control size-height" name="sizes[${sizeCount}][height]" step="0.125" required>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Price Multiplier</label>
+                    <input type="number" class="form-control" name="sizes[${sizeCount}][priceMultiplier]" step="0.1" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Metric (mm)</label>
+                    <div class="form-control-plaintext">
+                        <span class="metric-conversion">0 × 0 mm</span>
+                    </div>
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.size-entry').remove()">Remove</button>
+                </div>
+            </div>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', template);
+    sizeCount++;
+}
+
+function addUpgradeEntry() {
+    const container = document.getElementById('upgradesContainer');
+    const template = `
+        <div class="upgrade-entry border rounded p-3 mb-2">
+            <div class="row">
+                <div class="col-md-5">
+                    <label class="form-label">Name</label>
+                    <input type="text" class="form-control" name="upgrades[${upgradeCount}][name]" required>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">Upgrade Cost</label>
+                    <input type="number" class="form-control" name="upgrades[${upgradeCount}][upgradeCost]" step="0.01" required>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.upgrade-entry').remove()">Remove</button>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-12">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" name="upgrades[${upgradeCount}][description]" required></textarea>
+                </div>
+            </div>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', template);
+    upgradeCount++;
+}
+
+function addQuantityPrice() {
+    const tbody = document.querySelector('#quantityPricesContainer tbody');
+    const template = `
+        <tr>
+            <td>
+                <input type="number" class="form-control quantity-input" 
+                       name="quantityPrices[${quantityPriceCount}][quantity]" 
+                       required
+                       onchange="updatePricePerCard(this)">
+            </td>
+            <td>
+                <input type="number" class="form-control price-input" 
+                       name="quantityPrices[${quantityPriceCount}][price]" 
+                       step="0.01" required
+                       onchange="updatePricePerCard(this)">
+            </td>
+            <td>
+                <span class="price-per-card">$0.00</span>
+            </td>
+            <td>
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeQuantityPrice(this)">
+                    Remove
+                </button>
+            </td>
+        </tr>
+    `;
+    tbody.insertAdjacentHTML('beforeend', template);
+    quantityPriceCount++;
+    sortQuantityPrices();
+}
+
+function removeQuantityPrice(button) {
+    const row = button.closest('tr');
+    row.remove();
+    updateQuantityPriceIndexes();
+}
+
+function updatePricePerCard(input) {
+    const row = input.closest('tr');
+    const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
+    const price = parseFloat(row.querySelector('.price-input').value) || 0;
+    const pricePerCard = quantity > 0 ? (price / quantity).toFixed(3) : '0.00';
+    row.querySelector('.price-per-card').textContent = `$${pricePerCard}`;
+    sortQuantityPrices();
+}
+
+function sortQuantityPrices() {
+    const tbody = document.querySelector('#quantityPricesContainer tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    
+    rows.sort((a, b) => {
+        const quantityA = parseInt(a.querySelector('.quantity-input').value) || 0;
+        const quantityB = parseInt(b.querySelector('.quantity-input').value) || 0;
+        return quantityA - quantityB;
+    });
+
+    rows.forEach(row => tbody.appendChild(row));
+    updateQuantityPriceIndexes();
+}
+
+function updateQuantityPriceIndexes() {
+    const rows = document.querySelectorAll('#quantityPricesContainer tbody tr');
+    rows.forEach((row, index) => {
+        row.querySelector('.quantity-input').name = `quantityPrices[${index}][quantity]`;
+        row.querySelector('.price-input').name = `quantityPrices[${index}][price]`;
+    });
+    quantityPriceCount = rows.length;
+}
+
+// Price calculator functions
+function openPriceCalculator() {
+    try {
+        // Get current form data
+        const form = document.getElementById('editProductForm');
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        // Build product object
+        const product = {
+            name: data.name,
+            sizes: [],
+            selectedPaperIds: document.getElementById('selectedPaperIds').value.split(','),
+            upgrades: [],
+            quantityPrices: []
+        };
+
+        // Collect sizes
+        document.querySelectorAll('.size-entry').forEach((entry, index) => {
+            product.sizes.push({
+                name: entry.querySelector('input[name^="sizes"][name$="[name]"]').value,
+                width: parseFloat(entry.querySelector('input[name$="[width]"]').value),
+                height: parseFloat(entry.querySelector('input[name$="[height]"]').value),
+                priceMultiplier: parseFloat(entry.querySelector('input[name$="[priceMultiplier]"]').value)
+            });
+        });
+
+        // Collect upgrades
+        document.querySelectorAll('.upgrade-entry').forEach((entry, index) => {
+            product.upgrades.push({
+                name: entry.querySelector('input[name^="upgrades"][name$="[name]"]').value,
+                upgradeCost: parseFloat(entry.querySelector('input[name$="[upgradeCost]"]').value),
+                description: entry.querySelector('textarea[name$="[description]"]').value
+            });
+        });
+
+        // Collect quantity prices
+        document.querySelectorAll('#quantityPricesContainer tbody tr').forEach((row, index) => {
+            product.quantityPrices.push({
+                quantity: parseInt(row.querySelector('.quantity-input').value),
+                price: parseFloat(row.querySelector('.price-input').value)
+            });
+        });
+
+        // Initialize calculator modal
+        const modal = new bootstrap.Modal(document.getElementById('priceCalculatorModal'));
+        
+        // Set product name
+        document.getElementById('productName').value = product.name;
+
+        // Populate quantity options
+        const quantitySelect = document.getElementById('quantitySelect');
+        quantitySelect.innerHTML = product.quantityPrices.map(qp => 
+            `<option value="${qp.quantity}" data-price="${qp.price}">${qp.quantity} cards - $${qp.price}</option>`
+        ).join('');
+
+        // Populate size options
+        const sizeSelect = document.getElementById('sizeSelect');
+        sizeSelect.innerHTML = product.sizes.map(size => 
+            `<option value="${size.name}" data-multiplier="${size.priceMultiplier}">
+                ${size.name} (${size.width}" × ${size.height}")
+            </option>`
+        ).join('');
+
+        // Populate paper options
+        const paperSelect = document.getElementById('paperSelect');
+        const standardPapers = papers.filter(p => p.category === 'standard');
+        const premiumPapers = papers.filter(p => p.category === 'premium');
+        
+        paperSelect.innerHTML = `
+            <optgroup label="Standard Papers">
+                ${standardPapers.map(paper => `
+                    <option value="${paper.id}" 
+                            data-cost="${paper.upgradeCost}"
+                            title="${paper.description}">
+                        ${paper.name} - ${paper.thickness} ${paper.finish}
+                    </option>
+                `).join('')}
+            </optgroup>
+            <optgroup label="Premium Papers">
+                ${premiumPapers.map(paper => `
+                    <option value="${paper.id}" 
+                            data-cost="${paper.upgradeCost}"
+                            title="${paper.description}">
+                        ${paper.name} - ${paper.thickness} ${paper.finish} (+$${paper.upgradeCost})
+                    </option>
+                `).join('')}
+            </optgroup>
+        `;
+
+        // Populate upgrades
+        const upgradesContainer = document.getElementById('upgradesContainer');
+        upgradesContainer.innerHTML = product.upgrades.map(upgrade => `
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" 
+                       id="upgrade_${upgrade.name}" 
+                       data-cost="${upgrade.upgradeCost}"
+                       onchange="calculatePrice()">
+                <label class="form-check-label">
+                    ${upgrade.name} (+$${upgrade.upgradeCost})
+                    <small class="text-muted d-block">${upgrade.description}</small>
+                </label>
+            </div>
+        `).join('');
+
+        calculatePrice();
+        modal.show();
+    } catch (error) {
+        console.error('Error opening calculator:', error);
+        showNotification('Error', 'Failed to open calculator: ' + error.message, 'danger');
+    }
+}
+
+function calculatePrice() {
+    try {
+        // Get base price from quantity
+        const quantitySelect = document.getElementById('quantitySelect');
+        const quantity = parseInt(quantitySelect.value);
+        const basePrice = parseFloat(quantitySelect.selectedOptions[0].dataset.price);
+
+        // Get size multiplier
+        const sizeMultiplier = parseFloat(document.getElementById('sizeSelect').selectedOptions[0].dataset.multiplier);
+
+        // Calculate paper upgrade cost
+        const paperUpgradeCost = parseFloat(document.getElementById('paperSelect').selectedOptions[0].dataset.cost || 0);
+
+        // Calculate additional upgrades cost
+        const upgradesCost = Array.from(document.querySelectorAll('#upgradesContainer input[type="checkbox"]:checked'))
+            .reduce((sum, checkbox) => sum + parseFloat(checkbox.dataset.cost), 0);
+
+        // Calculate total
+        const subtotal = basePrice * sizeMultiplier;
+        const total = subtotal + paperUpgradeCost + upgradesCost;
+
+        // Update price breakdown
+        document.getElementById('priceBreakdown').innerHTML = `
+            ${quantity ? '' : '<div class="alert alert-warning">Please select a quantity</div>'}
+            <div class="mb-2">Base Price (${quantity} cards): $${basePrice.toFixed(2)}</div>
+            ${sizeMultiplier !== 1 ? `
+                <div class="mb-2">Size Multiplier: ${sizeMultiplier}x</div>
+                <div class="mb-2">Subtotal after size: $${subtotal.toFixed(2)}</div>
+            ` : ''}
+            ${paperUpgradeCost > 0 ? `
+                <div class="mb-2">Paper Upgrade: +$${paperUpgradeCost.toFixed(2)}</div>
+            ` : ''}
+            ${upgradesCost > 0 ? `
+                <div class="mb-2">Additional Upgrades: +$${upgradesCost.toFixed(2)}</div>
+            ` : ''}
+            <div class="total mt-3">Total Price: $${total.toFixed(2)}</div>
+            <div class="mt-1">Price per card: $${(total / quantity).toFixed(3)}</div>
+        `;
+    } catch (error) {
+        console.error('Error calculating price:', error);
+        document.getElementById('priceBreakdown').innerHTML = `
+            <div class="alert alert-danger">
+                Error calculating price: ${error.message}
+            </div>
+        `;
+    }
+}

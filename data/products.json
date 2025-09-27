@@ -1,0 +1,102 @@
+{
+  "products": [
+    {
+      "id": "1",
+      "name": "Standard Business Cards",
+      "description": "Professional business cards with various paper options",
+      "isActive": true,
+      "sizes": [
+        {
+          "name": "Standard US",
+          "width": 3.5,
+          "height": 2,
+          "priceMultiplier": 1
+        }
+      ],
+      "selectedPaperIds": [
+        "P001",
+        "P002"
+      ],
+      "upgrades": [
+        {
+          "name": "Rounded Corners",
+          "description": "Quarter-inch rounded edges for a modern look.",
+          "upgradeCost": 2
+        }
+      ],
+      "quantityPrices": [
+        {
+          "quantity": 50,
+          "price": 15
+        },
+        {
+          "quantity": 100,
+          "price": 20
+        },
+        {
+          "quantity": 250,
+          "price": 35
+        },
+        {
+          "quantity": 500,
+          "price": 60
+        },
+        {
+          "quantity": 1000,
+          "price": 100
+        }
+      ],
+      "createdAt": "2025-09-26T00:00:00.000Z",
+      "updatedAt": "2025-09-26T00:00:00.000Z"
+    },
+    {
+      "id": "2",
+      "name": "Standard Business Premium",
+      "description": "Professional business cards with various paper options",
+      "isActive": true,
+      "sizes": [
+        {
+          "name": "Standard US",
+          "width": 3.5,
+          "height": 2,
+          "priceMultiplier": 1
+        }
+      ],
+      "selectedPaperIds": [
+        "P005",
+        "P004"
+      ],
+      "upgrades": [
+        {
+          "name": "Rounded Corners",
+          "description": "Quarter-inch rounded edges for a modern look.",
+          "upgradeCost": 2
+        }
+      ],
+      "quantityPrices": [
+        {
+          "quantity": 50,
+          "price": 15
+        },
+        {
+          "quantity": 100,
+          "price": 20
+        },
+        {
+          "quantity": 250,
+          "price": 35
+        },
+        {
+          "quantity": 500,
+          "price": 60
+        },
+        {
+          "quantity": 1000,
+          "price": 100
+        }
+      ],
+      "createdAt": "2025-09-27T02:14:44.176Z",
+      "updatedAt": "2025-09-27T03:56:58.901Z"
+    }
+  ]
+}
