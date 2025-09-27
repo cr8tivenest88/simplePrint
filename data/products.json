@@ -97,6 +97,47 @@
       ],
       "createdAt": "2025-09-27T02:14:44.176Z",
       "updatedAt": "2025-09-27T03:56:58.901Z"
+    },
+    {
+      "name": "Post Card",
+      "description": "test",
+      "isActive": true,
+      "sizes": [
+        {
+          "name": "PostCard",
+          "width": 7,
+          "height": 5,
+          "priceMultiplier": 1
+        }
+      ],
+      "upgrades": [
+        {
+          "name": "Rounded Corners",
+          "description": "Quarter-inch rounded edges for a modern look.",
+          "upgradeCost": 2
+        },
+        {
+          "name": "Double-Sided Printing",
+          "description": "Print on both sides for more info.",
+          "upgradeCost": 5
+        }
+      ],
+      "quantityPrices": [
+        {
+          "quantity": 50,
+          "price": 15
+        },
+        {
+          "quantity": 100,
+          "price": 20
+        }
+      ],
+      "selectedPaperIds": [
+        "P003"
+      ],
+      "createdAt": "2025-09-27T05:49:19.697Z",
+      "updatedAt": "2025-09-27T05:49:19.697Z",
+      "id": "3"
     }
   ]
 }

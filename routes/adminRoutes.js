@@ -17,4 +17,9 @@ router.put('/products/:id', auth, adminController.updateProduct);
 router.delete('/products/:id', auth, adminController.deleteProduct);
 router.post('/products/:id/duplicate', auth, adminController.duplicateProduct);
 
+// Size preset routes
+router.get('/presets', auth, adminController.getPresets);
+router.post('/presets', auth, adminController.savePreset);
+router.delete('/presets/:key', auth, adminController.deletePreset);
+
 module.exports = router;

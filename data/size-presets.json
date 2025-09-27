@@ -1,0 +1,46 @@
+{
+  "presets": {
+    "standard": {
+      "name": "Standard US",
+      "width": 3.5,
+      "height": 2,
+      "multiplier": 1
+    },
+    "euro": {
+      "name": "European",
+      "width": 3.346,
+      "height": 2.165,
+      "multiplier": 1
+    },
+    "square": {
+      "name": "Square",
+      "width": 2.5,
+      "height": 2.5,
+      "multiplier": 1.1
+    },
+    "mini": {
+      "name": "Mini",
+      "width": 2.5,
+      "height": 1.5,
+      "multiplier": 0.8
+    },
+    "folded": {
+      "name": "Folded",
+      "width": 3.5,
+      "height": 4,
+      "multiplier": 1.75
+    },
+    "letter": {
+      "name": "Letter",
+      "width": 8.5,
+      "height": 11,
+      "multiplier": 1.2
+    },
+    "postcard": {
+      "name": "PostCard",
+      "width": 7,
+      "height": 5,
+      "multiplier": 1
+    }
+  }
+}

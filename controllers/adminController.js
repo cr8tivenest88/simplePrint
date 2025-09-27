@@ -2,6 +2,7 @@ const JsonDB = require('../utils/jsonDb');
 const adminsDb = new JsonDB('admins.json');
 const productsDb = new JsonDB('products.json');
 const paperDb = new JsonDB('paper-data.json');
+const presetsDb = new JsonDB('size-presets.json');
 
 const { generateToken, getCookieOptions } = require('../utils/jwt');
 
@@ -66,6 +67,10 @@ exports.getAddProduct = async (req, res) => {
 
 exports.createProduct = async (req, res) => {
     try {
+        console.log('=== CREATE PRODUCT DEBUG ===');
+        console.log('Request body:', req.body);
+        console.log('Request body keys:', Object.keys(req.body || {}));
+
         const body = req.body || {};
 
         // Normalize boolean
@@ -123,16 +128,24 @@ exports.createProduct = async (req, res) => {
             updatedAt: new Date().toISOString()
         };
 
+        console.log('=== PRODUCT TO INSERT ===');
+        console.log('Product:', JSON.stringify(productToInsert, null, 2));
+
         // Basic validation for required fields
         if (!productToInsert.name || !productToInsert.description) {
+            console.log('=== VALIDATION FAILED: Missing name or description ===');
             return res.status(400).json({ message: 'Name and description are required' });
         }
         if (productToInsert.sizes.length === 0) {
+            console.log('=== VALIDATION FAILED: No sizes ===');
             return res.status(400).json({ message: 'At least one size is required' });
         }
         if (productToInsert.quantityPrices.length === 0) {
+            console.log('=== VALIDATION FAILED: No quantity prices ===');
             return res.status(400).json({ message: 'At least one quantity price is required' });
         }
+
+        console.log('=== VALIDATION PASSED - INSERTING PRODUCT ===');
 
         await productsDb.insert('products', productToInsert);
         res.redirect('/admin/dashboard');
@@ -275,5 +288,58 @@ exports.duplicateProduct = async (req, res) => {
         res.json({ success: true, product: newProduct });
     } catch (error) {
         res.status(500).json({ message: 'Failed to duplicate product' });
+    }
+};
+
+exports.getPresets = async (req, res) => {
+    try {
+        const data = await presetsDb.readData();
+        res.json(data.presets || {});
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to load presets' });
+    }
+};
+
+exports.savePreset = async (req, res) => {
+    try {
+        const { name, width, height, multiplier } = req.body;
+
+        if (!name || !width || !height || !multiplier) {
+            return res.status(400).json({ message: 'All fields are required' });
+        }
+
+        const key = name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+
+        const data = await presetsDb.readData();
+        if (!data.presets) data.presets = {};
+
+        data.presets[key] = {
+            name: name,
+            width: parseFloat(width),
+            height: parseFloat(height),
+            multiplier: parseFloat(multiplier)
+        };
+
+        await presetsDb.writeData(data);
+        res.json({ success: true, key, preset: data.presets[key] });
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to save preset' });
+    }
+};
+
+exports.deletePreset = async (req, res) => {
+    try {
+        const { key } = req.params;
+
+        const data = await presetsDb.readData();
+        if (!data.presets || !data.presets[key]) {
+            return res.status(404).json({ message: 'Preset not found' });
+        }
+
+        delete data.presets[key];
+        await presetsDb.writeData(data);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to delete preset' });
     }
 };
