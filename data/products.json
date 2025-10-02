@@ -138,6 +138,48 @@
       "createdAt": "2025-09-27T05:49:19.697Z",
       "updatedAt": "2025-09-27T05:49:19.697Z",
       "id": "3"
+    },
+    {
+      "name": "Poster",
+      "description": "12x18 Poster",
+      "isActive": true,
+      "sizes": [
+        {
+          "name": "12x18",
+          "width": 12,
+          "height": 18,
+          "priceMultiplier": 1.4
+        }
+      ],
+      "upgrades": [
+        {
+          "name": "Rounded Corners",
+          "description": "Quarter-inch rounded edges for a modern look.",
+          "upgradeCost": 2
+        },
+        {
+          "name": "Double-Sided Printing",
+          "description": "Print on both sides for more info.",
+          "upgradeCost": 5
+        }
+      ],
+      "quantityPrices": [
+        {
+          "quantity": 50,
+          "price": 15
+        },
+        {
+          "quantity": 100,
+          "price": 20
+        }
+      ],
+      "selectedPaperIds": [
+        "P001",
+        "P002"
+      ],
+      "createdAt": "2025-10-01T17:28:04.245Z",
+      "updatedAt": "2025-10-01T17:28:04.246Z",
+      "id": "4"
     }
   ]
 }

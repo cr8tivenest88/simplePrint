@@ -5,7 +5,7 @@ const multer = require('multer');
 const JsonDB = require('./utils/jsonDb');
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3080;
 const paperData = new JsonDB('paper-data.json');
 const productsDb = new JsonDB('products.json');
 

@@ -41,6 +41,12 @@
       "width": 7,
       "height": 5,
       "multiplier": 1
+    },
+    "12x18": {
+      "name": "12x18",
+      "width": 12,
+      "height": 18,
+      "multiplier": 1.4
     }
   }
 }
