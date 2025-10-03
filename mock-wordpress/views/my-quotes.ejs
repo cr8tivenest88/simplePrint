@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Quotes - Mock WordPress</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>My Quotes</h1>
+      <nav>
+        <span>Logged in as: <strong><%= user.username %></strong> (<%= user.role %>)</span>
+        <a href="/quote">New Quote</a>
+        <a href="/auth/logout">Logout</a>
+      </nav>
+    </header>
+
+    <main>
+      <% if (quotes.length === 0) { %>
+        <p>No quotes yet. <a href="/quote">Create your first quote</a>.</p>
+      <% } else { %>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Product</th>
+              <th>Quantity</th>
+              <th>Grand Total</th>
+              <th>Created</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% quotes.forEach(q => { %>
+              <tr>
+                <td><%= q.id %></td>
+                <td><%= q.payload.productId %></td>
+                <td><%= q.payload.quantity %></td>
+                <td>$<%= q.payload.totals.grandTotal.toFixed(2) %></td>
+                <td><%= new Date(q.created_at).toLocaleString() %></td>
+                <td><%= q.status %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      <% } %>
+    </main>
+  </div>
+</body>
+</html>

@@ -118,7 +118,7 @@ exports.createProduct = async (req, res) => {
 
         const productToInsert = {
             name: body.name,
-            description: body.description,
+            description: body.description || '',
             isActive,
             sizes,
             upgrades,
@@ -132,9 +132,9 @@ exports.createProduct = async (req, res) => {
         console.log('Product:', JSON.stringify(productToInsert, null, 2));
 
         // Basic validation for required fields
-        if (!productToInsert.name || !productToInsert.description) {
-            console.log('=== VALIDATION FAILED: Missing name or description ===');
-            return res.status(400).json({ message: 'Name and description are required' });
+        if (!productToInsert.name) {
+            console.log('=== VALIDATION FAILED: Missing name ===');
+            return res.status(400).json({ message: 'Name is required' });
         }
         if (productToInsert.sizes.length === 0) {
             console.log('=== VALIDATION FAILED: No sizes ===');
@@ -226,8 +226,8 @@ exports.updateProduct = async (req, res) => {
         }
 
         // Validate required fields after normalization
-        if (!body.name || !body.description) {
-            return res.status(400).json({ message: 'Name and description are required' });
+        if (!body.name) {
+            return res.status(400).json({ message: 'Name is required' });
         }
         if (sizes.length === 0) {
             return res.status(400).json({ message: 'At least one size is required' });
@@ -239,7 +239,7 @@ exports.updateProduct = async (req, res) => {
         // Update the product
         const updatedProduct = {
             name: body.name,
-            description: body.description,
+            description: body.description || '',
             isActive,
             sizes,
             upgrades,

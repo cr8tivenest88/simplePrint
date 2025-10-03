@@ -37,10 +37,10 @@ const { authenticateAPI, optionalAuth } = require('../middleware/apiAuth');
  *       500:
  *         description: Server error
  */
-router.get('/products', authenticateAPI, async (req, res) => {
+router.get('/products', optionalAuth, async (req, res) => {
     try {
         const products = await calculatorService.getAllProducts();
-        res.json({ data: products });
+        res.json({ products: products });
     } catch (error) {
         console.error('Error fetching products:', error);
         res.status(500).json({
@@ -140,7 +140,7 @@ router.get('/products', authenticateAPI, async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.get('/products/:id', authenticateAPI, async (req, res) => {
+router.get('/products/:id', optionalAuth, async (req, res) => {
     try {
         const product = await calculatorService.getProductDetails(req.params.id);
         res.json({ data: product });
@@ -347,7 +347,7 @@ router.get('/products/:id', authenticateAPI, async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.post('/calculate', authenticateAPI, async (req, res) => {
+router.post('/calculate', optionalAuth, async (req, res) => {
     try {
         const result = await calculatorService.calculate(req.body);
         res.json({ data: result });

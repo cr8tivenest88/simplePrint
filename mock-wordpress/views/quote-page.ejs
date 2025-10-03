@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Get a Quote - Mock WordPress</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Mock WordPress - Quote Calculator</h1>
+      <nav>
+        <span>Logged in as: <strong><%= user.username %></strong> (<%= user.role %>)</span>
+        <a href="/my-quotes">My Quotes</a>
+        <a href="/auth/logout">Logout</a>
+      </nav>
+    </header>
+
+    <main>
+      <h2>Get Your Print Quote</h2>
+
+      <!-- Widget mount point -->
+      <div id="quote-calculator-widget"></div>
+    </main>
+  </div>
+
+  <!-- Load the calculator widget from Node server -->
+  <script src="<%= calculatorHost %>/widget.js"></script>
+
+  <script>
+    let currentPayload = null;
+
+    function handlePayload(payload) {
+      currentPayload = payload;
+      console.log('Quote calculated:', payload);
+    }
+
+    function handleError(error) {
+      alert('Error: ' + error.message);
+    }
+
+    // Custom save function that will be called when widget's Save Quote button is clicked
+    async function handleSaveQuote() {
+      if (!currentPayload) {
+        alert('Please complete the quote first');
+        return;
+      }
+
+      try {
+        // Transform the calculator payload to match the save endpoint's expected format
+        const savePayload = {
+          productId: currentPayload.inputs?.productId || null,
+          productName: currentPayload.inputs?.productName || null,
+          quantity: currentPayload.inputs?.quantity || null,
+          paperId: currentPayload.inputs?.paperId || null,
+          paperName: currentPayload.inputs?.paperName || null,
+          size: currentPayload.inputs?.size || null,
+          upgrades: currentPayload.inputs?.upgrades || [],
+          totals: currentPayload.totals || {},
+          lineItems: currentPayload.lineItems || [],
+          appliedUpgrades: currentPayload.appliedUpgrades || [],
+          meta: currentPayload.engineMeta || {}
+        };
+
+        console.log('Saving payload:', savePayload);
+
+        const response = await fetch('/api/quotes/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(savePayload)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          alert('Quote saved successfully!');
+          window.location.href = '/my-quotes';
+        } else {
+          alert('Failed to save quote: ' + result.message);
+        }
+      } catch (err) {
+        alert('Error saving quote: ' + err.message);
+      }
+    }
+
+    // Initialize widget
+    const widget = window.SimplePrintWidget.init({
+      mountPoint: '#quote-calculator-widget',
+      productId: null, // Let user choose
+      onPayload: handlePayload,
+      onError: handleError
+    });
+
+    // Override the widget's save button click handler
+    setTimeout(() => {
+      const saveBtn = document.getElementById('sp-save-quote-btn');
+      if (saveBtn) {
+        // Remove widget's default handler and add our custom one
+        const newBtn = saveBtn.cloneNode(true);
+        saveBtn.parentNode.replaceChild(newBtn, saveBtn);
+        newBtn.addEventListener('click', handleSaveQuote);
+      }
+    }, 1000);
+  </script>
+</body>
+</html>

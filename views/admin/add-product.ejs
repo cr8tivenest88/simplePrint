@@ -54,8 +54,8 @@
                                     </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Description</label>
-                                    <textarea class="form-control" name="description" rows="3" required></textarea>
+                                    <label class="form-label">Description (Optional)</label>
+                                    <textarea class="form-control" name="description" rows="3" placeholder="WordPress will handle product descriptions"></textarea>
                                 </div>
                             </div>
 
@@ -194,18 +194,26 @@
 
                             <!-- Upgrades -->
                             <div class="mb-4">
-                                <h5>Upgrades</h5>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="mb-0">Upgrades</h5>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="addUpgradeEntry()">
+                                        Add Upgrade
+                                    </button>
+                                </div>
                                 <div id="upgradesContainer">
                                     <% upgrades.forEach((upgrade, index) => { %>
                                         <div class="upgrade-entry border rounded p-3 mb-2">
                                             <div class="row">
-                                                <div class="col-md-6">
+                                                <div class="col-md-5">
                                                     <label class="form-label">Name</label>
                                                     <input type="text" class="form-control" name="upgrades[<%= index %>][name]" value="<%= upgrade.name %>" required>
                                                 </div>
-                                                <div class="col-md-6">
+                                                <div class="col-md-5">
                                                     <label class="form-label">Upgrade Cost</label>
                                                     <input type="number" class="form-control" name="upgrades[<%= index %>][upgradeCost]" value="<%= upgrade.upgradeCost %>" step="0.01" required>
+                                                </div>
+                                                <div class="col-md-2 d-flex align-items-end">
+                                                    <button type="button" class="btn btn-danger btn-sm" onclick="removeUpgrade(this)">Remove</button>
                                                 </div>
                                             </div>
                                             <div class="row mt-2">
@@ -352,7 +360,7 @@
         window.papers = <%- JSON.stringify(papers) %>;
 
         let sizeCount = 1;
-        let upgradeCount = 1;
+        let upgradeCount = <%= upgrades.length %>;
         let selectedPapers = new Map();
         let quantityPriceCount = 2; // Start at 2 since we have two default entries
 
@@ -690,7 +698,7 @@
                             <input type="number" class="form-control" name="upgrades[${upgradeCount}][upgradeCost]" step="0.01" required>
                         </div>
                         <div class="col-md-2 d-flex align-items-end">
-                            <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.upgrade-entry').remove()">Remove</button>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="removeUpgrade(this)">Remove</button>
                         </div>
                     </div>
                     <div class="row mt-2">
@@ -703,6 +711,22 @@
             `;
             container.insertAdjacentHTML('beforeend', template);
             upgradeCount++;
+        }
+
+        function removeUpgrade(button) {
+            const entry = button.closest('.upgrade-entry');
+            entry.remove();
+            updateUpgradeIndexes();
+        }
+
+        function updateUpgradeIndexes() {
+            const entries = document.querySelectorAll('#upgradesContainer .upgrade-entry');
+            entries.forEach((entry, index) => {
+                entry.querySelector('input[name*="[name]"]').name = `upgrades[${index}][name]`;
+                entry.querySelector('input[name*="[upgradeCost]"]').name = `upgrades[${index}][upgradeCost]`;
+                entry.querySelector('textarea[name*="[description]"]').name = `upgrades[${index}][description]`;
+            });
+            upgradeCount = entries.length;
         }
         function addQuantityPrice() {
             const tbody = document.querySelector('#quantityPricesContainer tbody');

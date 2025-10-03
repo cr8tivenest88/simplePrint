@@ -128,8 +128,8 @@
                                     </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Description</label>
-                                    <textarea class="form-control" name="description" rows="3" required><%= product.description %></textarea>
+                                    <label class="form-label">Description (Optional)</label>
+                                    <textarea class="form-control" name="description" rows="3" placeholder="WordPress will handle product descriptions"><%= product.description %></textarea>
                                 </div>
                             </div>
 
@@ -744,8 +744,8 @@
                 }
 
                 // Validate required fields
-                if (!data.name || !data.description) {
-                    throw new Error('Name and description are required');
+                if (!data.name) {
+                    throw new Error('Name is required');
                 }
 
                 console.log('Submitting data:', data);

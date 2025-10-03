@@ -3,6 +3,15 @@ const router = express.Router();
 const adminController = require('../controllers/adminController');
 const auth = require('../middleware/auth');
 
+// Redirect root admin to dashboard or login
+router.get('/', (req, res) => {
+  if (req.session && req.session.admin) {
+    res.redirect('/admin/dashboard');
+  } else {
+    res.redirect('/admin/login');
+  }
+});
+
 // Auth routes
 router.get('/login', (req, res) => res.render('admin/login'));
 router.post('/login', adminController.login);
