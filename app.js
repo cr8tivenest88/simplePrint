@@ -2,6 +2,10 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const multer = require('multer');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
+const corsMiddleware = require('./middleware/cors');
+const { apiLimiter, calcLimiter } = require('./middleware/rateLimiter');
 const JsonDB = require('./utils/jsonDb');
 
 const app = express();
@@ -25,10 +29,28 @@ app.use(upload.none()); // For forms without file uploads
 // Cookie parser middleware
 app.use(cookieParser());
 
+// CORS middleware for API routes only
+app.use('/api', corsMiddleware);
+
+// Swagger documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'SimplePrint API Documentation'
+}));
+
 // Import routes
 const adminRoutes = require('./routes/adminRoutes');
+const calculatorRoutes = require('./routes/calculatorRoutes');
+const authRoutes = require('./routes/authRoutes');
 
-// Routes
+// API routes with rate limiting
+app.use('/api/v1', apiLimiter, calculatorRoutes);
+app.use('/api/v1/auth', authRoutes);
+
+// Apply stricter rate limit to calculation endpoint
+app.post('/api/v1/calculate', calcLimiter);
+
+// Admin routes
 app.use('/admin', adminRoutes);
 
 // Simple favicon handler to avoid 404 noise
