@@ -1,0 +1,6 @@
+{
+  "markup": {
+    "percentage": 50,
+    "description": "Global markup percentage applied to calculated costs"
+  }
+}

@@ -31,4 +31,15 @@ router.get('/presets', auth, adminController.getPresets);
 router.post('/presets', auth, adminController.savePreset);
 router.delete('/presets/:key', auth, adminController.deletePreset);
 
+// Paper management routes
+router.get('/papers/add', auth, adminController.getAddPaper);
+router.get('/papers/edit/:id', auth, adminController.getEditPaper);
+router.post('/papers', auth, adminController.createPaper);
+router.post('/papers/:id', auth, adminController.updatePaper);
+router.delete('/papers/:id', auth, adminController.deletePaper);
+
+// Settings routes
+router.get('/settings', auth, adminController.getSettings);
+router.post('/settings/markup', auth, adminController.saveMarkup);
+
 module.exports = router;

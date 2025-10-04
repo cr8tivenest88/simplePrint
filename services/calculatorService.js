@@ -13,6 +13,8 @@ class CalculatorService {
      * @param {number} input.quantity - Quantity of items (must be > 0)
      * @param {string} input.size - Size name (e.g., "Standard US")
      * @param {string} input.paperId - Paper ID (e.g., "P001")
+     * @param {string} input.colorFront - Front color (Color, Black, or No Print)
+     * @param {string} input.colorBack - Back color (Color, Black, or No Print)
      * @param {Array<string>} input.upgradeNames - Array of upgrade names (optional)
      * @returns {Promise<Object>} Calculation result with totals and metadata
      */
@@ -72,12 +74,50 @@ class CalculatorService {
             }
         }
 
-        // Calculate base price with size multiplier
-        const basePrice = quantityPrice.price;
-        const sizeMultiplier = size.priceMultiplier || 1;
-        const subtotal = basePrice * sizeMultiplier;
+        // Calculate number up (how many pieces fit on parent sheet)
+        const bleed = 0.125;
+        const jobWidth = size.width + (bleed * 2);
+        const jobHeight = size.height + (bleed * 2);
+        const acrossSheet = Math.floor(paper.parentSheetSize.width / jobWidth);
+        const downSheet = Math.floor(paper.parentSheetSize.height / jobHeight);
+        const numberUp = acrossSheet * downSheet;
 
-        // Calculate paper upgrade cost
+        // Calculate sheets needed for quantity
+        const sheetsNeeded = Math.ceil(input.quantity / numberUp);
+
+        // Calculate paper cost
+        const paperCostPerSheet = paper.costPerSheet || 0;
+        const paperCostTotal = sheetsNeeded * paperCostPerSheet;
+
+        // Calculate click costs
+        const clickCosts = product.clickCosts || { color: 0.10, black: 0.05 };
+        let clickCostPerSheet = 0;
+
+        // Add front color cost
+        if (input.colorFront === 'Color') {
+            clickCostPerSheet += clickCosts.color;
+        } else if (input.colorFront === 'Black') {
+            clickCostPerSheet += clickCosts.black;
+        }
+
+        // Add back color cost
+        if (input.colorBack === 'Color') {
+            clickCostPerSheet += clickCosts.color;
+        } else if (input.colorBack === 'Black') {
+            clickCostPerSheet += clickCosts.black;
+        }
+
+        const clickCostTotal = sheetsNeeded * clickCostPerSheet;
+
+        // Calculate base price (paper + click costs)
+        const basePrice = paperCostTotal + clickCostTotal;
+
+        // Calculate size multiplier adjustment
+        const sizeMultiplier = size.priceMultiplier || 1;
+        const sizeAdjustment = basePrice * (sizeMultiplier - 1);
+        const subtotal = basePrice + sizeAdjustment;
+
+        // Calculate paper upgrade cost (premium paper markup)
         const paperUpgradeCost = paper.upgradeCost || 0;
 
         // Calculate upgrades cost
@@ -117,11 +157,22 @@ class CalculatorService {
                 size: input.size,
                 paperId: input.paperId,
                 paperName: paper.name,
+                colorFront: input.colorFront || 'Not specified',
+                colorBack: input.colorBack || 'Not specified',
                 upgrades: input.upgradeNames || []
+            },
+            calculation: {
+                numberUp: numberUp,
+                sheetsNeeded: sheetsNeeded,
+                paperCostPerSheet: parseFloat(paperCostPerSheet.toFixed(2)),
+                paperCostTotal: parseFloat(paperCostTotal.toFixed(2)),
+                clickCostPerSheet: parseFloat(clickCostPerSheet.toFixed(2)),
+                clickCostTotal: parseFloat(clickCostTotal.toFixed(2))
             },
             totals: {
                 basePrice: parseFloat(basePrice.toFixed(2)),
                 sizeMultiplier: sizeMultiplier,
+                sizeAdjustment: parseFloat(sizeAdjustment.toFixed(2)),
                 subtotal: parseFloat(subtotal.toFixed(2)),
                 paperUpgrade: parseFloat(paperUpgradeCost.toFixed(2)),
                 upgradesCost: parseFloat(upgradesCost.toFixed(2)),
@@ -130,16 +181,22 @@ class CalculatorService {
             },
             lineItems: [
                 {
-                    description: `${product.name} - ${input.quantity} units`,
-                    quantity: input.quantity,
-                    unitPrice: basePrice,
-                    total: basePrice
+                    description: `Paper Cost (${sheetsNeeded} sheets @ $${paperCostPerSheet.toFixed(2)})`,
+                    quantity: sheetsNeeded,
+                    unitPrice: paperCostPerSheet,
+                    total: paperCostTotal
                 },
-                ...(sizeMultiplier !== 1 ? [{
+                {
+                    description: `Click Cost (${sheetsNeeded} sheets @ $${clickCostPerSheet.toFixed(2)})`,
+                    quantity: sheetsNeeded,
+                    unitPrice: clickCostPerSheet,
+                    total: clickCostTotal
+                },
+                ...(sizeAdjustment !== 0 ? [{
                     description: `Size adjustment (${size.name}: ${sizeMultiplier}x)`,
                     quantity: 1,
-                    unitPrice: subtotal - basePrice,
-                    total: subtotal - basePrice
+                    unitPrice: sizeAdjustment,
+                    total: sizeAdjustment
                 }] : []),
                 ...(paperUpgradeCost > 0 ? [{
                     description: `Paper upgrade (${paper.name})`,
@@ -156,7 +213,7 @@ class CalculatorService {
             ],
             appliedUpgrades,
             engineMeta: {
-                version: 'v1.0.0',
+                version: 'v2.0.0',
                 calcMs: calcMs,
                 timestamp: new Date().toISOString()
             }
@@ -184,6 +241,15 @@ class CalculatorService {
 
         if (!input.paperId || typeof input.paperId !== 'string') {
             errors.push('paperId is required and must be a string');
+        }
+
+        const validColors = ['Color', 'Black', 'No Print'];
+        if (input.colorFront && !validColors.includes(input.colorFront)) {
+            errors.push('colorFront must be one of: Color, Black, No Print');
+        }
+
+        if (input.colorBack && !validColors.includes(input.colorBack)) {
+            errors.push('colorBack must be one of: Color, Black, No Print');
         }
 
         if (input.upgradeNames && !Array.isArray(input.upgradeNames)) {

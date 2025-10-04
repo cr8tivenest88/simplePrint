@@ -3,6 +3,7 @@ const adminsDb = new JsonDB('admins.json');
 const productsDb = new JsonDB('products.json');
 const paperDb = new JsonDB('paper-data.json');
 const presetsDb = new JsonDB('size-presets.json');
+const settingsDb = new JsonDB('settings.json');
 
 const { generateToken, getCookieOptions } = require('../utils/jwt');
 
@@ -43,10 +44,12 @@ exports.getDashboard = async (req, res) => {
     try {
         const products = await productsDb.findAll('products');
         const paperData = await paperDb.readData();
+        const settings = await settingsDb.readData();
         res.render('admin/dashboard', {
             products,
             papers: paperData.papers,
-            upgrades: paperData.upgrades
+            upgrades: paperData.upgrades,
+            settings
         });
     } catch (error) {
         res.status(500).json({ message: 'Server error' });
@@ -116,6 +119,12 @@ exports.createProduct = async (req, res) => {
             selectedPaperIds = [];
         }
 
+        // Parse click costs
+        const clickCosts = {
+            color: typeof body.clickCosts?.color === 'string' ? parseFloat(body.clickCosts.color) : (body.clickCosts?.color || 0.10),
+            black: typeof body.clickCosts?.black === 'string' ? parseFloat(body.clickCosts.black) : (body.clickCosts?.black || 0.05)
+        };
+
         const productToInsert = {
             name: body.name,
             description: body.description || '',
@@ -124,6 +133,7 @@ exports.createProduct = async (req, res) => {
             upgrades,
             quantityPrices,
             selectedPaperIds,
+            clickCosts,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
@@ -225,6 +235,12 @@ exports.updateProduct = async (req, res) => {
             selectedPaperIds = [];
         }
 
+        // Parse click costs
+        const clickCosts = {
+            color: typeof body.clickCosts?.color === 'string' ? parseFloat(body.clickCosts.color) : (body.clickCosts?.color || 0.10),
+            black: typeof body.clickCosts?.black === 'string' ? parseFloat(body.clickCosts.black) : (body.clickCosts?.black || 0.05)
+        };
+
         // Validate required fields after normalization
         if (!body.name) {
             return res.status(400).json({ message: 'Name is required' });
@@ -245,6 +261,7 @@ exports.updateProduct = async (req, res) => {
             upgrades,
             quantityPrices,
             selectedPaperIds,
+            clickCosts,
             updatedAt: new Date().toISOString()
         };
 
@@ -341,5 +358,180 @@ exports.deletePreset = async (req, res) => {
         res.json({ success: true });
     } catch (error) {
         res.status(500).json({ message: 'Failed to delete preset' });
+    }
+};
+
+// Paper Management
+exports.getAddPaper = async (req, res) => {
+    try {
+        res.render('admin/add-paper');
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+exports.createPaper = async (req, res) => {
+    try {
+        const { name, category, thickness, finish, description, parentSheetWidth, parentSheetHeight, costPerSheet, upgradeCost } = req.body;
+
+        // Validate required fields
+        if (!name || !category || !thickness || !finish || !parentSheetWidth || !parentSheetHeight || !costPerSheet) {
+            return res.status(400).json({ message: 'All required fields must be filled' });
+        }
+
+        // Read current paper data
+        const paperData = await paperDb.readData();
+
+        // Generate new paper ID
+        const newId = 'P' + String(paperData.papers.length + 1).padStart(3, '0');
+
+        // Create new paper object
+        const newPaper = {
+            id: newId,
+            name,
+            category,
+            thickness,
+            finish,
+            description: description || '',
+            parentSheetSize: {
+                width: parseFloat(parentSheetWidth),
+                height: parseFloat(parentSheetHeight)
+            },
+            costPerSheet: parseFloat(costPerSheet),
+            sheetsPerPack: 100,
+            costPerPack: parseFloat(costPerSheet) * 100,
+            upgradeCost: parseFloat(upgradeCost) || 0
+        };
+
+        // Add to papers array
+        paperData.papers.push(newPaper);
+
+        // Save back to file
+        await paperDb.writeData(paperData);
+
+        res.redirect('/admin/dashboard');
+    } catch (error) {
+        console.error('Error creating paper:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+exports.getEditPaper = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const paperData = await paperDb.readData();
+        const paper = paperData.papers.find(p => p.id === id);
+
+        if (!paper) {
+            return res.status(404).render('error', { message: 'Paper not found' });
+        }
+
+        res.render('admin/edit-paper', { paper });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+exports.updatePaper = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, category, thickness, finish, description, parentSheetWidth, parentSheetHeight, costPerSheet, upgradeCost } = req.body;
+
+        // Validate required fields
+        if (!name || !category || !thickness || !finish || !parentSheetWidth || !parentSheetHeight || !costPerSheet) {
+            return res.status(400).json({ message: 'All required fields must be filled' });
+        }
+
+        // Read current paper data
+        const paperData = await paperDb.readData();
+        const paperIndex = paperData.papers.findIndex(p => p.id === id);
+
+        if (paperIndex === -1) {
+            return res.status(404).json({ message: 'Paper not found' });
+        }
+
+        // Update paper object
+        paperData.papers[paperIndex] = {
+            id,
+            name,
+            category,
+            thickness,
+            finish,
+            description: description || '',
+            parentSheetSize: {
+                width: parseFloat(parentSheetWidth),
+                height: parseFloat(parentSheetHeight)
+            },
+            costPerSheet: parseFloat(costPerSheet),
+            sheetsPerPack: 100,
+            costPerPack: parseFloat(costPerSheet) * 100,
+            upgradeCost: parseFloat(upgradeCost) || 0
+        };
+
+        // Save back to file
+        await paperDb.writeData(paperData);
+
+        res.redirect('/admin/dashboard');
+    } catch (error) {
+        console.error('Error updating paper:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+exports.deletePaper = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Read current paper data
+        const paperData = await paperDb.readData();
+        const paperIndex = paperData.papers.findIndex(p => p.id === id);
+
+        if (paperIndex === -1) {
+            return res.status(404).json({ message: 'Paper not found' });
+        }
+
+        // Remove paper from array
+        paperData.papers.splice(paperIndex, 1);
+
+        // Save back to file
+        await paperDb.writeData(paperData);
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting paper:', error);
+        res.status(500).json({ message: 'Failed to delete paper' });
+    }
+};
+
+// Settings Management
+exports.saveMarkup = async (req, res) => {
+    try {
+        const { percentage } = req.body;
+
+        if (typeof percentage !== 'number' || percentage < 0) {
+            return res.status(400).json({ message: 'Invalid markup percentage' });
+        }
+
+        const settings = await settingsDb.readData();
+        settings.markup = {
+            percentage,
+            description: 'Global markup percentage applied to calculated costs'
+        };
+
+        await settingsDb.writeData(settings);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error saving markup:', error);
+        res.status(500).json({ message: 'Failed to save markup' });
+    }
+};
+
+exports.getSettings = async (req, res) => {
+    try {
+        const settings = await settingsDb.readData();
+        res.json({ data: settings });
+    } catch (error) {
+        console.error('Error fetching settings:', error);
+        res.status(500).json({ message: 'Failed to fetch settings' });
     }
 };

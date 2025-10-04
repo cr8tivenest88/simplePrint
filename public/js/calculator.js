@@ -1,6 +1,8 @@
 // Initialize variables
 let calculatorModal = null;
 
+console.log('=== CALCULATOR.JS LOADED ===');
+
 // Ensure required global variables are available
 function checkGlobals() {
     const required = ['currentProduct', 'papers'];
@@ -36,6 +38,7 @@ function showNotification(title, message, type = 'success') {
 }
 
 function openPriceCalculator() {
+    console.log('=== openPriceCalculator CALLED ===');
     try {
         console.log('Opening calculator...');
         checkGlobals();
@@ -67,31 +70,60 @@ function openPriceCalculator() {
             </option>`
         ).join('');
 
-        // Populate paper options
+        // Populate paper options - only show papers selected for this product
         const paperSelect = document.getElementById('paperSelect');
-        const standardPapers = papers.filter(p => p.category === 'standard');
-        const premiumPapers = papers.filter(p => p.category === 'premium');
+        const selectedPaperIds = currentProduct.selectedPaperIds || [];
 
-        paperSelect.innerHTML = `
-            <optgroup label="Standard Papers">
-                ${standardPapers.map(paper => `
-                    <option value="${paper.id}" 
-                            data-cost="${paper.upgradeCost}"
-                            title="${paper.description}">
-                        ${paper.name} - ${paper.thickness} ${paper.finish}
-                    </option>
-                `).join('')}
-            </optgroup>
-            <optgroup label="Premium Papers">
-                ${premiumPapers.map(paper => `
-                    <option value="${paper.id}" 
-                            data-cost="${paper.upgradeCost}"
-                            title="${paper.description}">
-                        ${paper.name} - ${paper.thickness} ${paper.finish} (+$${paper.upgradeCost})
-                    </option>
-                `).join('')}
-            </optgroup>
-        `;
+        console.log('=== PAPER FILTERING DEBUG ===');
+        console.log('currentProduct:', currentProduct);
+        console.log('selectedPaperIds:', selectedPaperIds);
+        console.log('all papers:', papers);
+
+        // Filter papers based on product's selectedPaperIds
+        let availablePapers = papers;
+        if (selectedPaperIds && selectedPaperIds.length > 0) {
+            availablePapers = papers.filter(paper => selectedPaperIds.includes(paper.id));
+        }
+
+        console.log('availablePapers after filtering:', availablePapers);
+
+        const standardPapers = availablePapers.filter(p => p.category === 'standard');
+        const premiumPapers = availablePapers.filter(p => p.category === 'premium');
+
+        console.log('standardPapers:', standardPapers);
+        console.log('premiumPapers:', premiumPapers);
+
+        let paperOptions = '';
+
+        if (standardPapers.length > 0) {
+            paperOptions += `
+                <optgroup label="Standard Papers">
+                    ${standardPapers.map(paper => `
+                        <option value="${paper.id}"
+                                data-cost="${paper.upgradeCost}"
+                                title="${paper.description}">
+                            ${paper.name} - ${paper.thickness} ${paper.finish}
+                        </option>
+                    `).join('')}
+                </optgroup>
+            `;
+        }
+
+        if (premiumPapers.length > 0) {
+            paperOptions += `
+                <optgroup label="Premium Papers">
+                    ${premiumPapers.map(paper => `
+                        <option value="${paper.id}"
+                                data-cost="${paper.upgradeCost}"
+                                title="${paper.description}">
+                            ${paper.name} - ${paper.thickness} ${paper.finish} (+$${paper.upgradeCost})
+                        </option>
+                    `).join('')}
+                </optgroup>
+            `;
+        }
+
+        paperSelect.innerHTML = paperOptions;
 
         // Populate upgrades
         const upgradesContainer = document.getElementById('upgradesContainer');
@@ -162,4 +194,5 @@ function calculatePrice() {
             </div>
         `;
     }
-}
+}/* Cache buster updated */
+// Version 4

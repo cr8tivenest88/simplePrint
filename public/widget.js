@@ -56,10 +56,16 @@
                   </select>
                 </div>
                 <div class="sp-form-group">
-                  <label>
-                    <input type="checkbox" id="sp-color" value="color">
-                    Color Printing
-                  </label>
+                  <label for="sp-color-front">Front Color:</label>
+                  <select id="sp-color-front" required>
+                    <option value="">-- Choose Front Color --</option>
+                  </select>
+                </div>
+                <div class="sp-form-group">
+                  <label for="sp-color-back">Back Color:</label>
+                  <select id="sp-color-back" required>
+                    <option value="">-- Choose Back Color --</option>
+                  </select>
                 </div>
                 <div class="sp-form-group">
                   <label>Upgrades (Optional):</label>
@@ -163,6 +169,26 @@
             quantitySelect.appendChild(option);
           });
 
+          // Populate color dropdowns with product's available colors
+          const colorOptions = ['Color', 'Black', 'No Print'];
+          const frontColorSelect = document.getElementById('sp-color-front');
+          const backColorSelect = document.getElementById('sp-color-back');
+
+          frontColorSelect.innerHTML = '<option value="">-- Choose Front Color --</option>';
+          backColorSelect.innerHTML = '<option value="">-- Choose Back Color --</option>';
+
+          colorOptions.forEach(color => {
+            const frontOption = document.createElement('option');
+            frontOption.value = color;
+            frontOption.textContent = color;
+            frontColorSelect.appendChild(frontOption);
+
+            const backOption = document.createElement('option');
+            backOption.value = color;
+            backOption.textContent = color;
+            backColorSelect.appendChild(backOption);
+          });
+
           // Populate upgrades as checkboxes
           const upgradesContainer = document.getElementById('sp-upgrades-container');
           upgradesContainer.innerHTML = '';
@@ -171,13 +197,21 @@
             const checkboxDiv = document.createElement('div');
             checkboxDiv.style.marginBottom = '8px';
             checkboxDiv.innerHTML = `
-              <label style="display: flex; align-items: center; cursor: pointer;">
+              <label style="display: flex; align-items: flex-start; cursor: pointer;">
                 <input type="checkbox" class="sp-upgrade-checkbox" value="${upgrade.name}"
-                       style="margin-right: 8px;" onchange="autoCalculate()">
-                <span>${upgrade.name} (+$${upgrade.upgradeCost})</span>
+                       style="margin-right: 8px; margin-top: 3px;">
+                <span>
+                  <strong>${upgrade.name} (+$${upgrade.upgradeCost})</strong>
+                  ${upgrade.description ? `<br><small style="color: #666;">${upgrade.description}</small>` : ''}
+                </span>
               </label>
             `;
             upgradesContainer.appendChild(checkboxDiv);
+          });
+
+          // Attach event listeners to upgrade checkboxes
+          upgradesContainer.querySelectorAll('.sp-upgrade-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', autoCalculate);
           });
 
           document.getElementById('sp-product-details').style.display = 'block';
@@ -209,9 +243,15 @@
         const upgradeNames = Array.from(document.querySelectorAll('.sp-upgrade-checkbox:checked'))
           .map(checkbox => checkbox.value);
 
+        console.log('Selected upgrades:', upgradeNames);
+
         try {
           // Get size from selected product
           const size = selectedProduct?.sizes?.[0]?.name || 'Standard US';
+
+          // Get front and back colors
+          const colorFront = document.getElementById('sp-color-front').value;
+          const colorBack = document.getElementById('sp-color-back').value;
 
           const response = await fetch(`${calculatorHost}/api/v1/calculate`, {
             method: 'POST',
@@ -223,6 +263,8 @@
               paperId,
               quantity,
               size,
+              colorFront,
+              colorBack,
               upgradeNames
             })
           });
@@ -235,6 +277,9 @@
           const result = await response.json();
           const data = result.data || result;
 
+          console.log('API Response:', data);
+          console.log('Applied Upgrades:', data.appliedUpgrades);
+
           // Store current calculation
           currentPayload = data;
 
@@ -243,15 +288,21 @@
           document.getElementById('sp-price-content').style.display = 'block';
 
           const totals = data.totals || {};
+
+          // Build upgrades display
+          let upgradesHTML = '';
+          if (data.appliedUpgrades && data.appliedUpgrades.length > 0) {
+            upgradesHTML += '<hr style="margin: 10px 0;">';
+            upgradesHTML += '<p style="margin: 5px 0;"><strong>Selected Upgrades:</strong></p>';
+            data.appliedUpgrades.forEach(upgrade => {
+              upgradesHTML += `<p style="margin: 5px 0 5px 15px;">• ${upgrade.name}: +$${upgrade.cost.toFixed(2)}</p>`;
+            });
+          }
+
           document.getElementById('sp-price-details').innerHTML = `
-            <p style="margin: 5px 0;"><strong>Product:</strong> ${data.inputs?.productName || productId}</p>
-            <p style="margin: 5px 0;"><strong>Quantity:</strong> ${quantity}</p>
-            <p style="margin: 5px 0;"><strong>Base Price:</strong> $${(totals.basePrice || 0).toFixed(2)}</p>
-            ${totals.paperUpgrade > 0 ? `<p style="margin: 5px 0;"><strong>Paper Upgrade:</strong> $${totals.paperUpgrade.toFixed(2)}</p>` : ''}
-            ${totals.upgradesCost > 0 ? `<p style="margin: 5px 0;"><strong>Upgrades:</strong> $${totals.upgradesCost.toFixed(2)}</p>` : ''}
-            <hr style="margin: 10px 0;">
-            <p style="margin: 5px 0; font-size: 1.2em;"><strong>Grand Total:</strong> $${(totals.grandTotal || 0).toFixed(2)}</p>
-            <p style="margin: 5px 0; color: #666;"><em>Unit Price: $${(totals.unitPrice || 0).toFixed(2)}</em></p>
+            <p style="margin: 10px 0; font-size: 1.3em;"><strong>Total Price: $${(totals.grandTotal || 0).toFixed(2)}</strong></p>
+            <p style="margin: 5px 0; color: #666;">Price per card: $${(totals.unitPrice || 0).toFixed(3)}</p>
+            ${upgradesHTML}
           `;
 
           document.getElementById('sp-save-quote-btn').style.display = 'block';
@@ -292,8 +343,9 @@
       document.getElementById('sp-product').addEventListener('change', handleProductChange);
       document.getElementById('sp-paper').addEventListener('change', autoCalculate);
       document.getElementById('sp-quantity').addEventListener('change', autoCalculate);
-      document.getElementById('sp-color').addEventListener('change', autoCalculate);
-      // Note: Upgrade checkboxes have inline onchange="autoCalculate()" already
+      document.getElementById('sp-color-front').addEventListener('change', autoCalculate);
+      document.getElementById('sp-color-back').addEventListener('change', autoCalculate);
+      // Note: Upgrade checkboxes are attached dynamically when product is selected (see handleProductChange)
       document.getElementById('sp-save-quote-btn').addEventListener('click', handleSaveQuote);
 
       // Return widget API

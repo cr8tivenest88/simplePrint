@@ -7,6 +7,13 @@
       "thickness": "14pt",
       "finish": "Glossy (shiny)",
       "description": "Bright, bold colors; great for logos/photos.",
+      "parentSheetSize": {
+        "width": 13,
+        "height": 19
+      },
+      "costPerSheet": 0.05,
+      "sheetsPerPack": 100,
+      "costPerPack": 5.00,
       "upgradeCost": 0
     },
     {
@@ -16,6 +23,13 @@
       "thickness": "14pt",
       "finish": "Matte (non-reflective)",
       "description": "Professional, smudge-resistant; ideal for text-heavy designs.",
+      "parentSheetSize": {
+        "width": 13,
+        "height": 19
+      },
+      "costPerSheet": 0.05,
+      "sheetsPerPack": 100,
+      "costPerPack": 5.00,
       "upgradeCost": 0
     },
     {
@@ -25,6 +39,13 @@
       "thickness": "14pt",
       "finish": "Uncoated (raw)",
       "description": "Writable with pen; natural feel for eco-brands.",
+      "parentSheetSize": {
+        "width": 13,
+        "height": 19
+      },
+      "costPerSheet": 0.05,
+      "sheetsPerPack": 100,
+      "costPerPack": 5.00,
       "upgradeCost": 0
     },
     {
@@ -34,6 +55,13 @@
       "thickness": "16-20pt",
       "finish": "Linen (textured weave)",
       "description": "Classic, embossable; upscale for professionals.",
+      "parentSheetSize": {
+        "width": 13,
+        "height": 19
+      },
+      "costPerSheet": 0.10,
+      "sheetsPerPack": 100,
+      "costPerPack": 10.00,
       "upgradeCost": 5
     },
     {
@@ -43,6 +71,13 @@
       "thickness": "14-16pt",
       "finish": "Matte (recycled fibers)",
       "description": "Eco-friendly, subtle grain; sustainable branding.",
+      "parentSheetSize": {
+        "width": 13,
+        "height": 19
+      },
+      "costPerSheet": 0.12,
+      "sheetsPerPack": 100,
+      "costPerPack": 12.00,
       "upgradeCost": 7
     },
     {
@@ -52,6 +87,13 @@
       "thickness": "14pt",
       "finish": "Kraft (rustic brown)",
       "description": "Vintage, uncoated; for creative/food businesses.",
+      "parentSheetSize": {
+        "width": 13,
+        "height": 19
+      },
+      "costPerSheet": 0.11,
+      "sheetsPerPack": 100,
+      "costPerPack": 11.00,
       "upgradeCost": 6
     },
     {
@@ -61,6 +103,13 @@
       "thickness": "16pt",
       "finish": "Soft textured",
       "description": "Durable, plant-based; modern eco-luxury.",
+      "parentSheetSize": {
+        "width": 13,
+        "height": 19
+      },
+      "costPerSheet": 0.13,
+      "sheetsPerPack": 100,
+      "costPerPack": 13.00,
       "upgradeCost": 8
     },
     {
@@ -70,6 +119,13 @@
       "thickness": "16pt",
       "finish": "Smooth textured",
       "description": "Renewable, silky feel; for green/tech firms.",
+      "parentSheetSize": {
+        "width": 13,
+        "height": 19
+      },
+      "costPerSheet": 0.13,
+      "sheetsPerPack": 100,
+      "costPerPack": 13.00,
       "upgradeCost": 8
     }
   ],

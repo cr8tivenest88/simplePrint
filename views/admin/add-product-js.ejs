@@ -115,6 +115,8 @@ function confirmPaperSelection() {
     document.getElementById('selectedPaperIds').value = Array.from(selectedPapers.keys()).join(',');
     const modal = bootstrap.Modal.getInstance(document.getElementById('paperSelectionModal'));
     modal.hide();
+    // Update number up calculations for all size entries
+    updateAllNumberUp();
 }
 
 function updateSelectedPapersTable() {
@@ -134,22 +136,47 @@ function updateSelectedPapersTable() {
     });
 }
 
-function inchesToMm(inches) {
-    return (inches * INCH_TO_MM).toFixed(1);
+function calculateNumberUp(width, height, parentWidth, parentHeight) {
+    if (!width || !height || !parentWidth || !parentHeight) return 0;
+
+    const bleed = 0.125;
+    const jobWidth = parseFloat(width) + (bleed * 2);
+    const jobHeight = parseFloat(height) + (bleed * 2);
+
+    const acrossSheet = Math.floor(parentWidth / jobWidth);
+    const downSheet = Math.floor(parentHeight / jobHeight);
+
+    return acrossSheet * downSheet;
 }
 
-function updateMetricConversion(sizeEntry) {
+function updateNumberUp(sizeEntry) {
     const width = sizeEntry.querySelector('.size-width').value;
     const height = sizeEntry.querySelector('.size-height').value;
-    const conversionSpan = sizeEntry.querySelector('.metric-conversion');
-    
-    if (width && height) {
-        const widthMm = inchesToMm(width);
-        const heightMm = inchesToMm(height);
-        conversionSpan.textContent = `${widthMm} × ${heightMm} mm`;
-    } else {
-        conversionSpan.textContent = '0 × 0 mm';
+    const displaySpan = sizeEntry.querySelector('.number-up-display');
+
+    if (!width || !height) {
+        displaySpan.innerHTML = '<span class="text-muted">Enter dimensions</span>';
+        return;
     }
+
+    if (selectedPapers.size === 0) {
+        displaySpan.innerHTML = '<span class="text-muted">Select papers first</span>';
+        return;
+    }
+
+    let html = '';
+    selectedPapers.forEach(paper => {
+        const numberUp = calculateNumberUp(width, height, paper.parentSheetSize.width, paper.parentSheetSize.height);
+        html += `<div><strong>${paper.name}:</strong> ${numberUp} up</div>`;
+    });
+
+    displaySpan.innerHTML = html;
+}
+
+function updateAllNumberUp() {
+    document.querySelectorAll('.size-entry').forEach(sizeEntry => {
+        updateNumberUp(sizeEntry);
+    });
 }
 
 function applyPreset(presetKey) {
@@ -172,13 +199,13 @@ function applyPreset(presetKey) {
     heightInput.value = presetData.height;
     multiplierInput.value = presetData.multiplier;
 
-    updateMetricConversion(firstSizeEntry);
+    updateNumberUp(firstSizeEntry);
 }
 
 // Add event listeners for size input changes
 document.addEventListener('input', function(e) {
     if (e.target.classList.contains('size-width') || e.target.classList.contains('size-height')) {
-        updateMetricConversion(e.target.closest('.size-entry'));
+        updateNumberUp(e.target.closest('.size-entry'));
     }
 });
 
@@ -204,9 +231,9 @@ function addSizeEntry() {
                     <input type="number" class="form-control" name="sizes[${sizeCount}][priceMultiplier]" step="0.1" required>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Metric (mm)</label>
+                    <label class="form-label">Number Up per Paper</label>
                     <div class="form-control-plaintext">
-                        <span class="metric-conversion">0 × 0 mm</span>
+                        <span class="number-up-display text-muted">Select papers and enter dimensions</span>
                     </div>
                 </div>
                 <div class="col-md-1 d-flex align-items-end">
@@ -246,6 +273,39 @@ function addUpgradeEntry() {
     `;
     container.insertAdjacentHTML('beforeend', template);
     upgradeCount++;
+}
+
+let colorCount = 1;
+
+function addColorEntry() {
+    const container = document.getElementById('colorsContainer');
+    const template = `
+        <div class="color-entry border rounded p-3 mb-2">
+            <div class="row">
+                <div class="col-md-5">
+                    <label class="form-label">Front</label>
+                    <select class="form-select" name="colors[${colorCount}][front]" required>
+                        <option value="Color">Color</option>
+                        <option value="Black">Black</option>
+                        <option value="No Print">No Print</option>
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">Back</label>
+                    <select class="form-select" name="colors[${colorCount}][back]" required>
+                        <option value="Color">Color</option>
+                        <option value="Black">Black</option>
+                        <option value="No Print">No Print</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.color-entry').remove()">Remove</button>
+                </div>
+            </div>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', template);
+    colorCount++;
 }
 
 function addQuantityPrice() {
@@ -318,6 +378,8 @@ function updateQuantityPriceIndexes() {
 }
 
 // Price calculator functions
+let currentProduct = null;
+
 function openPriceCalculator() {
     try {
         // Get current form data
@@ -326,13 +388,15 @@ function openPriceCalculator() {
         const data = Object.fromEntries(formData.entries());
 
         // Build product object
-        const product = {
+        currentProduct = {
+            id: data.id || 'temp',
             name: data.name,
             sizes: [],
             selectedPaperIds: document.getElementById('selectedPaperIds').value.split(','),
             upgrades: [],
             quantityPrices: []
         };
+        const product = currentProduct;
 
         // Collect sizes
         document.querySelectorAll('.size-entry').forEach((entry, index) => {
@@ -381,31 +445,62 @@ function openPriceCalculator() {
             </option>`
         ).join('');
 
-        // Populate paper options
+        // Populate paper options - only show papers selected for this product
         const paperSelect = document.getElementById('paperSelect');
-        const standardPapers = papers.filter(p => p.category === 'standard');
-        const premiumPapers = papers.filter(p => p.category === 'premium');
-        
-        paperSelect.innerHTML = `
-            <optgroup label="Standard Papers">
-                ${standardPapers.map(paper => `
-                    <option value="${paper.id}" 
-                            data-cost="${paper.upgradeCost}"
-                            title="${paper.description}">
-                        ${paper.name} - ${paper.thickness} ${paper.finish}
-                    </option>
-                `).join('')}
-            </optgroup>
-            <optgroup label="Premium Papers">
-                ${premiumPapers.map(paper => `
-                    <option value="${paper.id}" 
-                            data-cost="${paper.upgradeCost}"
-                            title="${paper.description}">
-                        ${paper.name} - ${paper.thickness} ${paper.finish} (+$${paper.upgradeCost})
-                    </option>
-                `).join('')}
-            </optgroup>
-        `;
+
+        // Filter papers based on product's selectedPaperIds
+        let availablePapers = papers;
+        if (product.selectedPaperIds && product.selectedPaperIds.length > 0) {
+            availablePapers = papers.filter(paper => product.selectedPaperIds.includes(paper.id));
+        }
+
+        const standardPapers = availablePapers.filter(p => p.category === 'standard');
+        const premiumPapers = availablePapers.filter(p => p.category === 'premium');
+
+        let paperOptions = '';
+
+        if (standardPapers.length > 0) {
+            paperOptions += `
+                <optgroup label="Standard Papers">
+                    ${standardPapers.map(paper => `
+                        <option value="${paper.id}"
+                                data-cost="${paper.upgradeCost}"
+                                title="${paper.description}">
+                            ${paper.name} - ${paper.thickness} ${paper.finish}
+                        </option>
+                    `).join('')}
+                </optgroup>
+            `;
+        }
+
+        if (premiumPapers.length > 0) {
+            paperOptions += `
+                <optgroup label="Premium Papers">
+                    ${premiumPapers.map(paper => `
+                        <option value="${paper.id}"
+                                data-cost="${paper.upgradeCost}"
+                                title="${paper.description}">
+                            ${paper.name} - ${paper.thickness} ${paper.finish} (+$${paper.upgradeCost})
+                        </option>
+                    `).join('')}
+                </optgroup>
+            `;
+        }
+
+        paperSelect.innerHTML = paperOptions;
+
+        // Populate color options
+        const colorOptions = ['Color', 'Black', 'No Print'];
+        const frontColorSelect = document.getElementById('frontColorSelect');
+        const backColorSelect = document.getElementById('backColorSelect');
+
+        frontColorSelect.innerHTML = colorOptions.map(color =>
+            `<option value="${color}">${color}</option>`
+        ).join('');
+
+        backColorSelect.innerHTML = colorOptions.map(color =>
+            `<option value="${color}">${color}</option>`
+        ).join('');
 
         // Populate upgrades
         const upgradesContainer = document.getElementById('upgradesContainer');
@@ -430,50 +525,212 @@ function openPriceCalculator() {
     }
 }
 
-function calculatePrice() {
+async function calculatePrice() {
     try {
-        // Get base price from quantity
+        // Get form values
         const quantitySelect = document.getElementById('quantitySelect');
         const quantity = parseInt(quantitySelect.value);
-        const basePrice = parseFloat(quantitySelect.selectedOptions[0].dataset.price);
+        const paperId = document.getElementById('paperSelect').value;
+        const size = document.getElementById('sizeSelect').value;
+        const colorFront = document.getElementById('frontColorSelect').value;
+        const colorBack = document.getElementById('backColorSelect').value;
 
-        // Get size multiplier
-        const sizeMultiplier = parseFloat(document.getElementById('sizeSelect').selectedOptions[0].dataset.multiplier);
+        // Get selected upgrades
+        const upgradeNames = Array.from(document.querySelectorAll('#upgradesContainer input[type="checkbox"]:checked'))
+            .map(checkbox => checkbox.id.replace('upgrade_', ''));
 
-        // Calculate paper upgrade cost
-        const paperUpgradeCost = parseFloat(document.getElementById('paperSelect').selectedOptions[0].dataset.cost || 0);
+        if (!quantity || !paperId || !size || !colorFront || !colorBack) {
+            document.getElementById('priceBreakdown').innerHTML = '<div class="alert alert-warning">Please fill all required fields</div>';
+            return;
+        }
 
-        // Calculate additional upgrades cost
-        const upgradesCost = Array.from(document.querySelectorAll('#upgradesContainer input[type="checkbox"]:checked'))
-            .reduce((sum, checkbox) => sum + parseFloat(checkbox.dataset.cost), 0);
+        // Show loading
+        document.getElementById('priceBreakdown').innerHTML = '<div class="spinner-border spinner-border-sm" role="status"></div> Calculating...';
 
-        // Calculate total
-        const subtotal = basePrice * sizeMultiplier;
-        const total = subtotal + paperUpgradeCost + upgradesCost;
+        // Call API
+        const response = await fetch('/api/v1/calculate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                productId: currentProduct.id,
+                quantity,
+                size,
+                paperId,
+                colorFront,
+                colorBack,
+                upgradeNames
+            })
+        });
 
-        // Update price breakdown
-        document.getElementById('priceBreakdown').innerHTML = `
-            ${quantity ? '' : '<div class="alert alert-warning">Please select a quantity</div>'}
-            <div class="mb-2">Base Price (${quantity} cards): $${basePrice.toFixed(2)}</div>
-            ${sizeMultiplier !== 1 ? `
-                <div class="mb-2">Size Multiplier: ${sizeMultiplier}x</div>
-                <div class="mb-2">Subtotal after size: $${subtotal.toFixed(2)}</div>
-            ` : ''}
-            ${paperUpgradeCost > 0 ? `
-                <div class="mb-2">Paper Upgrade: +$${paperUpgradeCost.toFixed(2)}</div>
-            ` : ''}
-            ${upgradesCost > 0 ? `
-                <div class="mb-2">Additional Upgrades: +$${upgradesCost.toFixed(2)}</div>
-            ` : ''}
-            <div class="total mt-3">Total Price: $${total.toFixed(2)}</div>
-            <div class="mt-1">Price per card: $${(total / quantity).toFixed(3)}</div>
-        `;
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Calculation failed');
+        }
+
+        const result = await response.json();
+        const data = result.data;
+
+        // Display calculation details
+        let html = '';
+
+        if (data.calculation) {
+            html += `<div class="mb-2"><strong>Calculation Details:</strong></div>`;
+            html += `<div class="mb-2">Number Up: ${data.calculation.numberUp} per sheet</div>`;
+            html += `<div class="mb-2">Sheets Needed: ${data.calculation.sheetsNeeded}</div>`;
+            html += `<div class="mb-2">Paper Cost: $${data.calculation.paperCostTotal.toFixed(2)} (${data.calculation.sheetsNeeded} × $${data.calculation.paperCostPerSheet.toFixed(2)})</div>`;
+            html += `<div class="mb-2">Click Cost: $${data.calculation.clickCostTotal.toFixed(2)} (${data.calculation.sheetsNeeded} × $${data.calculation.clickCostPerSheet.toFixed(2)})</div>`;
+        }
+
+        if (data.totals) {
+            html += `<hr>`;
+            html += `<div class="mb-2">Base Price: $${data.totals.basePrice.toFixed(2)}</div>`;
+            if (data.totals.sizeAdjustment > 0) {
+                html += `<div class="mb-2">Size Adjustment (${data.totals.sizeMultiplier}x): +$${data.totals.sizeAdjustment.toFixed(2)}</div>`;
+            }
+            if (data.totals.paperUpgrade > 0) {
+                html += `<div class="mb-2">Paper Upgrade: +$${data.totals.paperUpgrade.toFixed(2)}</div>`;
+            }
+            if (data.totals.upgradesCost > 0) {
+                html += `<div class="mb-2">Upgrades: +$${data.totals.upgradesCost.toFixed(2)}</div>`;
+            }
+            html += `<div class="total mt-3"><strong>Grand Total: $${data.totals.grandTotal.toFixed(2)}</strong></div>`;
+            html += `<div class="mt-1">Unit Price: $${data.totals.unitPrice.toFixed(3)}</div>`;
+        }
+
+        document.getElementById('priceBreakdown').innerHTML = html;
+
     } catch (error) {
         console.error('Error calculating price:', error);
         document.getElementById('priceBreakdown').innerHTML = `
             <div class="alert alert-danger">
-                Error calculating price: ${error.message}
+                Error: ${error.message}
             </div>
         `;
     }
 }
+
+// Auto-calculate all quantity prices
+async function autoCalculateAllPrices() {
+    try {
+        // Get settings (markup percentage)
+        const settingsResponse = await fetch('/admin/settings');
+        const settingsData = await settingsResponse.json();
+        const markupPercentage = settingsData.data?.markup?.percentage || 50;
+
+        // Get click costs
+        const clickCosts = {
+            color: parseFloat(document.querySelector('input[name="clickCosts[color]"]').value) || 0.10,
+            black: parseFloat(document.querySelector('input[name="clickCosts[black]"]').value) || 0.05
+        };
+
+        // Get selected papers
+        const selectedPaperIdsInput = document.getElementById('selectedPaperIds').value;
+        if (!selectedPaperIdsInput) {
+            alert('Please select at least one paper type first');
+            return;
+        }
+        const selectedPaperIds = selectedPaperIdsInput.split(',').map(id => id.trim());
+
+        // Get first paper
+        const firstPaper = papers.find(p => selectedPaperIds.includes(p.id));
+        if (!firstPaper) {
+            alert('No valid paper selected');
+            return;
+        }
+
+        // Get first size
+        const firstSizeEntry = document.querySelector('.size-entry');
+        if (!firstSizeEntry) {
+            alert('Please add at least one size first');
+            return;
+        }
+
+        const width = parseFloat(firstSizeEntry.querySelector('input[name$="[width]"]').value);
+        const height = parseFloat(firstSizeEntry.querySelector('input[name$="[height]"]').value);
+        const priceMultiplier = parseFloat(firstSizeEntry.querySelector('input[name$="[priceMultiplier]"]').value);
+
+        if (!width || !height || !priceMultiplier) {
+            alert('Please fill in size details first');
+            return;
+        }
+
+        // Calculate number up
+        const bleed = 0.125;
+        const jobWidth = width + (bleed * 2);
+        const jobHeight = height + (bleed * 2);
+        const acrossSheet = Math.floor(firstPaper.parentSheetSize.width / jobWidth);
+        const downSheet = Math.floor(firstPaper.parentSheetSize.height / jobHeight);
+        const numberUp = acrossSheet * downSheet;
+
+        if (numberUp === 0) {
+            alert('Job size is too large for the parent sheet');
+            return;
+        }
+
+        // Loop through all quantity rows and calculate prices
+        const rows = document.querySelectorAll('#quantityPricesContainer tbody tr');
+        rows.forEach(row => {
+            const quantityInput = row.querySelector('.quantity-input');
+            const priceInput = row.querySelector('.price-input');
+
+            if (!quantityInput || !priceInput) return;
+
+            const quantity = parseInt(quantityInput.value);
+            if (!quantity || quantity <= 0) return;
+
+            // Calculate sheets needed
+            const sheetsNeeded = Math.ceil(quantity / numberUp);
+
+            // Calculate paper cost
+            const paperCost = sheetsNeeded * firstPaper.costPerSheet;
+
+            // Calculate click cost (assume Color front and back as default)
+            const clickCostPerSheet = clickCosts.color * 2; // front + back
+            const clickCost = sheetsNeeded * clickCostPerSheet;
+
+            // Base cost
+            let calcCost = paperCost + clickCost;
+
+            // Apply size multiplier
+            calcCost = calcCost * priceMultiplier;
+
+            // Apply markup
+            const markupMultiplier = 1 + (markupPercentage / 100);
+            let finalPrice = calcCost * markupMultiplier;
+
+            // Round up to nearest cent
+            finalPrice = Math.ceil(finalPrice * 100) / 100;
+
+            // Update price input
+            priceInput.value = finalPrice.toFixed(2);
+
+            // Update price per card display
+            updatePricePerCard(priceInput);
+        });
+
+        showNotification('Success', 'Prices calculated successfully! You can still manually adjust any price.', 'success');
+
+    } catch (error) {
+        console.error('Error auto-calculating prices:', error);
+        showNotification('Error', 'Failed to calculate prices: ' + error.message, 'danger');
+    }
+}
+
+// Initialize number up calculations on page load (for edit-product page)
+document.addEventListener('DOMContentLoaded', function() {
+    // Wait a bit for selectedPapers to be populated
+    setTimeout(() => {
+        if (selectedPapers.size > 0) {
+            updateAllNumberUp();
+        }
+
+        // Also calculate quantity pricing rows on page load
+        document.querySelectorAll('.quantity-input').forEach(input => {
+            if (input.value) {
+                autoCalculateRowPrice(input);
+            }
+        });
+    }, 100);
+});

@@ -59,49 +59,22 @@
                                 </div>
                             </div>
 
-                            <!-- Sizes -->
+                            <!-- Click Costs -->
                             <div class="mb-4">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h5 class="mb-0">Card Sizes</h5>
-                                    <div>
-                                        <div class="dropdown d-inline-block me-2">
-                                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="sizePresetsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                                Size Presets
-                                            </button>
-                                            <ul class="dropdown-menu" id="sizePresetsList" aria-labelledby="sizePresetsDropdown">
-                                                <!-- Presets will be populated by JavaScript -->
-                                            </ul>
+                                <h5 class="mb-3">Click Costs (Per Item)</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Color ($)</label>
+                                            <input type="number" step="0.01" class="form-control" name="clickCosts[color]" value="0.10" required>
+                                            <small class="text-muted">Cost per click for color printing (front and back)</small>
                                         </div>
-                                        <button type="button" class="btn btn-outline-primary btn-sm me-2" onclick="addSizeEntry()">Add Custom Size</button>
-                                        <button type="button" class="btn btn-outline-success btn-sm" onclick="showAddPresetModal()">Add New Preset</button>
                                     </div>
-
-                                </div>
-                                <div id="sizesContainer">
-                                    <div class="size-entry border rounded p-3 mb-2">
-                                        <div class="row">
-                                            <div class="col-md-2">
-                                                <label class="form-label">Name</label>
-                                                <input type="text" class="form-control" name="sizes[0][name]" placeholder="e.g., Standard" required>
-                                            </div>
-                                            <div class="col-md-2">
-                                                <label class="form-label">Width (inches)</label>
-                                                <input type="number" class="form-control size-width" name="sizes[0][width]" step="0.125" required>
-                                            </div>
-                                            <div class="col-md-2">
-                                                <label class="form-label">Height (inches)</label>
-                                                <input type="number" class="form-control size-height" name="sizes[0][height]" step="0.125" required>
-                                            </div>
-                                            <div class="col-md-2">
-                                                <label class="form-label">Price Multiplier</label>
-                                                <input type="number" class="form-control" name="sizes[0][priceMultiplier]" step="0.1" required>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label class="form-label">Metric (mm)</label>
-                                                <div class="form-control-plaintext">
-                                                    <span class="metric-conversion">0 × 0 mm</span>
-                                                </div>
-                                            </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Black ($)</label>
+                                            <input type="number" step="0.01" class="form-control" name="clickCosts[black]" value="0.05" required>
+                                            <small class="text-muted">Cost per click for black printing (front and back)</small>
                                         </div>
                                     </div>
                                 </div>
@@ -157,7 +130,8 @@
                                                             <th>Category</th>
                                                             <th>Thickness</th>
                                                             <th>Finish</th>
-                                                            <th>Cost</th>
+                                                            <th>Parent Sheet</th>
+                                                            <th>Cost/Sheet</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -165,8 +139,8 @@
                                                             <tr>
                                                                 <td>
                                                                     <div class="form-check">
-                                                                        <input class="form-check-input paper-checkbox" 
-                                                                               type="checkbox" 
+                                                                        <input class="form-check-input paper-checkbox"
+                                                                               type="checkbox"
                                                                                value="<%= paper.id %>"
                                                                                data-paper-id="<%= paper.id %>">
                                                                     </div>
@@ -177,7 +151,8 @@
                                                                 </span></td>
                                                                 <td><%= paper.thickness %></td>
                                                                 <td><%= paper.finish %></td>
-                                                                <td>$<%= paper.upgradeCost %></td>
+                                                                <td><%= paper.parentSheetSize.width %>" × <%= paper.parentSheetSize.height %>"</td>
+                                                                <td>$<%= paper.costPerSheet.toFixed(4) %></td>
                                                             </tr>
                                                         <% }); %>
                                                     </tbody>
@@ -187,6 +162,54 @@
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                                             <button type="button" class="btn btn-primary" onclick="confirmPaperSelection()">Confirm Selection</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sizes -->
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="mb-0">Card Sizes</h5>
+                                    <div>
+                                        <div class="dropdown d-inline-block me-2">
+                                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="sizePresetsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                                Size Presets
+                                            </button>
+                                            <ul class="dropdown-menu" id="sizePresetsList" aria-labelledby="sizePresetsDropdown">
+                                                <!-- Presets will be populated by JavaScript -->
+                                            </ul>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-primary btn-sm me-2" onclick="addSizeEntry()">Add Custom Size</button>
+                                        <button type="button" class="btn btn-outline-success btn-sm" onclick="showAddPresetModal()">Add New Preset</button>
+                                    </div>
+
+                                </div>
+                                <div id="sizesContainer">
+                                    <div class="size-entry border rounded p-3 mb-2">
+                                        <div class="row">
+                                            <div class="col-md-2">
+                                                <label class="form-label">Name</label>
+                                                <input type="text" class="form-control" name="sizes[0][name]" placeholder="e.g., Standard" required>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label">Width (inches)</label>
+                                                <input type="number" class="form-control size-width" name="sizes[0][width]" step="0.125" required>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label">Height (inches)</label>
+                                                <input type="number" class="form-control size-height" name="sizes[0][height]" step="0.125" required>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label">Price Multiplier</label>
+                                                <input type="number" class="form-control" name="sizes[0][priceMultiplier]" step="0.1" required>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label">Number Up per Paper</label>
+                                                <div class="form-control-plaintext">
+                                                    <span class="number-up-display text-muted">Select papers and enter dimensions</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -229,33 +252,51 @@
 
                             <!-- Quantity Prices -->
                             <div class="mb-4">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h5 class="mb-0">Quantity Pricing</h5>
-                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="addQuantityPrice()">
-                                        Add Quantity Price
-                                    </button>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <h5 class="mb-0">Quantity Pricing</h5>
+                                        <small class="text-muted">Enter quantity to auto-calculate all fields including price. You can manually edit price after calculation.</small>
+                                    </div>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-success btn-sm" onclick="autoCalculateAllPrices()">
+                                            <i class="bi bi-calculator"></i> Auto-Calculate Prices
+                                        </button>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addQuantityPrice()">
+                                            Add Quantity Price
+                                        </button>
+                                    </div>
                                 </div>
                                 <div id="quantityPricesContainer" class="table-responsive">
-                                    <table class="table table-bordered">
+                                    <table class="table table-bordered table-sm">
                                         <thead class="table-light">
                                             <tr>
                                                 <th>Quantity</th>
+                                                <th>Sheets</th>
+                                                <th>Paper Cost</th>
+                                                <th>Click Cost</th>
+                                                <th>Total Cost</th>
+                                                <th>Markup %</th>
                                                 <th>Price ($)</th>
-                                                <th>Price Per Card</th>
+                                                <th>$/Card</th>
                                                 <th>Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
                                                 <td>
-                                                    <input type="number" class="form-control quantity-input" 
-                                                           name="quantityPrices[0][quantity]" 
+                                                    <input type="number" class="form-control form-control-sm quantity-input"
+                                                           name="quantityPrices[0][quantity]"
                                                            value="50" required
-                                                           onchange="updatePricePerCard(this)">
+                                                           oninput="autoCalculateRowPrice(this)">
                                                 </td>
+                                                <td class="sheets-display">-</td>
+                                                <td class="paper-cost-display">-</td>
+                                                <td class="click-cost-display">-</td>
+                                                <td class="total-cost-display">-</td>
+                                                <td class="markup-display">-</td>
                                                 <td>
-                                                    <input type="number" class="form-control price-input" 
-                                                           name="quantityPrices[0][price]" 
+                                                    <input type="number" class="form-control form-control-sm price-input"
+                                                           name="quantityPrices[0][price]"
                                                            value="15" step="0.01" required
                                                            onchange="updatePricePerCard(this)">
                                                 </td>
@@ -270,14 +311,19 @@
                                             </tr>
                                             <tr>
                                                 <td>
-                                                    <input type="number" class="form-control quantity-input" 
-                                                           name="quantityPrices[1][quantity]" 
+                                                    <input type="number" class="form-control form-control-sm quantity-input"
+                                                           name="quantityPrices[1][quantity]"
                                                            value="100" required
-                                                           onchange="updatePricePerCard(this)">
+                                                           oninput="autoCalculateRowPrice(this)">
                                                 </td>
+                                                <td class="sheets-display">-</td>
+                                                <td class="paper-cost-display">-</td>
+                                                <td class="click-cost-display">-</td>
+                                                <td class="total-cost-display">-</td>
+                                                <td class="markup-display">-</td>
                                                 <td>
-                                                    <input type="number" class="form-control price-input" 
-                                                           name="quantityPrices[1][price]" 
+                                                    <input type="number" class="form-control form-control-sm price-input"
+                                                           name="quantityPrices[1][price]"
                                                            value="20" step="0.01" required
                                                            onchange="updatePricePerCard(this)">
                                                 </td>
@@ -410,12 +456,14 @@
                 const triggerBtn = document.querySelector('button[data-bs-target="#paperSelectionModal"]');
                 if (triggerBtn) triggerBtn.focus();
             }, 0);
+            // Update number up calculations for all size entries
+            updateAllNumberUp();
         }
 
         function updateSelectedPapersTable() {
             const tbody = document.getElementById('selectedPapersList');
             tbody.innerHTML = '';
-            
+
             selectedPapers.forEach(paper => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -426,6 +474,49 @@
                     <td>$${paper.upgradeCost}</td>
                 `;
                 tbody.appendChild(row);
+            });
+        }
+
+        function calculateNumberUp(width, height, parentWidth, parentHeight) {
+            if (!width || !height || !parentWidth || !parentHeight) return 0;
+
+            const bleed = 0.125;
+            const jobWidth = parseFloat(width) + (bleed * 2);
+            const jobHeight = parseFloat(height) + (bleed * 2);
+
+            const acrossSheet = Math.floor(parentWidth / jobWidth);
+            const downSheet = Math.floor(parentHeight / jobHeight);
+
+            return acrossSheet * downSheet;
+        }
+
+        function updateNumberUp(sizeEntry) {
+            const width = sizeEntry.querySelector('.size-width').value;
+            const height = sizeEntry.querySelector('.size-height').value;
+            const displaySpan = sizeEntry.querySelector('.number-up-display');
+
+            if (!width || !height) {
+                displaySpan.innerHTML = '<span class="text-muted">Enter dimensions</span>';
+                return;
+            }
+
+            if (selectedPapers.size === 0) {
+                displaySpan.innerHTML = '<span class="text-muted">Select papers first</span>';
+                return;
+            }
+
+            let html = '';
+            selectedPapers.forEach(paper => {
+                const numberUp = calculateNumberUp(width, height, paper.parentSheetSize.width, paper.parentSheetSize.height);
+                html += `<div><strong>${paper.name}:</strong> ${numberUp} up</div>`;
+            });
+
+            displaySpan.innerHTML = html;
+        }
+
+        function updateAllNumberUp() {
+            document.querySelectorAll('.size-entry').forEach(sizeEntry => {
+                updateNumberUp(sizeEntry);
             });
         }
 
@@ -586,7 +677,7 @@
             heightInput.value = presetData.height;
             multiplierInput.value = presetData.multiplier;
 
-            updateMetricConversion(firstSizeEntry);
+            updateNumberUp(firstSizeEntry);
         }
 
         // Initialize the presets dropdown when the page loads
@@ -597,7 +688,7 @@
         // Add event listeners for size input changes
         document.addEventListener('input', function(e) {
             if (e.target.classList.contains('size-width') || e.target.classList.contains('size-height')) {
-                updateMetricConversion(e.target.closest('.size-entry'));
+                updateNumberUp(e.target.closest('.size-entry'));
             }
         });
 
@@ -623,9 +714,9 @@
                             <input type="number" class="form-control" name="sizes[${sizeCount}][priceMultiplier]" step="0.1" required>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Metric (mm)</label>
+                            <label class="form-label">Number Up per Paper</label>
                             <div class="form-control-plaintext">
-                                <span class="metric-conversion">0 × 0 mm</span>
+                                <span class="number-up-display text-muted">Select papers and enter dimensions</span>
                             </div>
                         </div>
                         <div class="col-md-1 d-flex align-items-end">
@@ -728,19 +819,120 @@
             });
             upgradeCount = entries.length;
         }
+        async function autoCalculateRowPrice(input) {
+            const row = input.closest('tr');
+            const quantity = parseInt(input.value);
+
+            if (!quantity || quantity <= 0) {
+                row.querySelector('.sheets-display').textContent = '-';
+                row.querySelector('.paper-cost-display').textContent = '-';
+                row.querySelector('.click-cost-display').textContent = '-';
+                row.querySelector('.total-cost-display').textContent = '-';
+                row.querySelector('.markup-display').textContent = '-';
+                return;
+            }
+
+            // Get first size
+            const firstSizeEntry = document.querySelector('.size-entry');
+            if (!firstSizeEntry) {
+                row.querySelector('.sheets-display').textContent = 'No size';
+                return;
+            }
+
+            const width = parseFloat(firstSizeEntry.querySelector('.size-width').value);
+            const height = parseFloat(firstSizeEntry.querySelector('.size-height').value);
+            const priceMultiplier = parseFloat(firstSizeEntry.querySelector('input[name$="[priceMultiplier]"]').value) || 1;
+
+            if (!width || !height) {
+                row.querySelector('.sheets-display').textContent = 'Enter size';
+                return;
+            }
+
+            // Check if paper is selected
+            if (selectedPapers.size === 0) {
+                row.querySelector('.sheets-display').textContent = 'No paper';
+                return;
+            }
+
+            // Get first selected paper
+            const firstPaper = Array.from(selectedPapers.values())[0];
+
+            // Get click costs
+            const clickCosts = {
+                color: parseFloat(document.querySelector('input[name="clickCosts[color]"]').value) || 0.10,
+                black: parseFloat(document.querySelector('input[name="clickCosts[black]"]').value) || 0.05
+            };
+
+            // Calculate number up
+            const bleed = 0.125;
+            const jobWidth = width + (bleed * 2);
+            const jobHeight = height + (bleed * 2);
+            const acrossSheet = Math.floor(firstPaper.parentSheetSize.width / jobWidth);
+            const downSheet = Math.floor(firstPaper.parentSheetSize.height / jobHeight);
+            const numberUp = acrossSheet * downSheet;
+
+            if (numberUp === 0) {
+                row.querySelector('.sheets-display').textContent = '0 (too large)';
+                row.querySelector('.paper-cost-display').textContent = '-';
+                row.querySelector('.click-cost-display').textContent = '-';
+                row.querySelector('.total-cost-display').textContent = '-';
+                row.querySelector('.markup-display').textContent = '-';
+                return;
+            }
+
+            // Calculate costs
+            const sheetsNeeded = Math.ceil(quantity / numberUp);
+            const paperCost = sheetsNeeded * firstPaper.costPerSheet;
+            const clickCostPerSheet = clickCosts.color * 2; // front + back
+            const clickCost = sheetsNeeded * clickCostPerSheet;
+            const totalCost = (paperCost + clickCost) * priceMultiplier;
+
+            // Get markup percentage from settings
+            let markupPercentage = 50; // default fallback
+            try {
+                const settingsResponse = await fetch('/admin/settings');
+                if (settingsResponse.ok) {
+                    const settingsData = await settingsResponse.json();
+                    markupPercentage = settingsData.data?.markup?.percentage || 50;
+                }
+            } catch (error) {
+                console.warn('Could not fetch markup settings, using default 50%');
+            }
+
+            // Display results
+            row.querySelector('.sheets-display').textContent = sheetsNeeded;
+            row.querySelector('.paper-cost-display').textContent = '$' + paperCost.toFixed(2);
+            row.querySelector('.click-cost-display').textContent = '$' + clickCost.toFixed(2);
+            row.querySelector('.total-cost-display').textContent = '$' + totalCost.toFixed(2);
+            row.querySelector('.markup-display').textContent = markupPercentage + '%';
+
+            // Auto-fill price with calculated value
+            const priceInput = row.querySelector('.price-input');
+            const markupMultiplier = 1 + (markupPercentage / 100);
+            const suggestedPrice = Math.ceil(totalCost * markupMultiplier * 100) / 100;
+            priceInput.value = suggestedPrice.toFixed(2);
+
+            updatePricePerCard(priceInput);
+        }
+
         function addQuantityPrice() {
             const tbody = document.querySelector('#quantityPricesContainer tbody');
             const template = `
                 <tr>
                     <td>
-                        <input type="number" class="form-control quantity-input" 
-                               name="quantityPrices[${quantityPriceCount}][quantity]" 
+                        <input type="number" class="form-control form-control-sm quantity-input"
+                               name="quantityPrices[${quantityPriceCount}][quantity]"
                                required
-                               onchange="updatePricePerCard(this)">
+                               oninput="autoCalculateRowPrice(this)">
                     </td>
+                    <td class="sheets-display">-</td>
+                    <td class="paper-cost-display">-</td>
+                    <td class="click-cost-display">-</td>
+                    <td class="total-cost-display">-</td>
+                    <td class="markup-display">-</td>
                     <td>
-                        <input type="number" class="form-control price-input" 
-                               name="quantityPrices[${quantityPriceCount}][price]" 
+                        <input type="number" class="form-control form-control-sm price-input"
+                               name="quantityPrices[${quantityPriceCount}][price]"
                                step="0.01" required
                                onchange="updatePricePerCard(this)">
                     </td>
@@ -801,9 +993,15 @@
 
         // Initialize price per card calculations on page load
         document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.quantity-input').forEach(input => {
-                updatePricePerCard(input);
-            });
+            // Wait a bit for selectedPapers to be populated
+            setTimeout(() => {
+                document.querySelectorAll('.quantity-input').forEach(input => {
+                    if (input.value) {
+                        autoCalculateRowPrice(input);
+                    }
+                    updatePricePerCard(input);
+                });
+            }, 100);
 
             // Add form submission handler for debugging
             const form = document.getElementById('addProductForm');
