@@ -112,6 +112,8 @@
       // Populate product dropdown
       function populateProductSelect() {
         const select = document.getElementById('sp-product');
+        const productFormGroup = select.closest('.sp-form-group');
+
         products.forEach(product => {
           // Show product if isActive is true or undefined (not explicitly set to false)
           if (product.isActive !== false) {
@@ -122,9 +124,12 @@
           }
         });
 
-        // If productId provided, select it
+        // If productId provided, select it and hide the dropdown
         if (productId) {
           select.value = productId;
+          if (productFormGroup) {
+            productFormGroup.style.display = 'none';
+          }
           handleProductChange();
         }
       }

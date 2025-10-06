@@ -2,11 +2,13 @@ const cors = require('cors');
 
 // Whitelist of allowed origins (WordPress domains)
 const allowedOrigins = [
+    'http://localhost',
     'http://localhost:3080',
     'http://localhost:3088',
     'http://localhost:8080',
     'https://yourwordpress.com',
-    'https://staging.yourwordpress.com'
+    'https://staging.yourwordpress.com',
+    'https://demo.whitefox.lk/'
     // Add your WordPress domain(s) here
 ];
 
