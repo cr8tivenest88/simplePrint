@@ -102,10 +102,18 @@ exports.createProduct = async (req, res) => {
         })).filter((u) => u && u.name && u.description && !Number.isNaN(u.upgradeCost));
 
         // Parse quantity prices
-        const quantityPrices = toArray(body.quantityPrices).map((qp) => ({
-            quantity: typeof qp.quantity === 'string' ? parseInt(qp.quantity, 10) : qp.quantity,
-            price: typeof qp.price === 'string' ? parseFloat(qp.price) : qp.price
-        })).filter((qp) => qp && Number.isInteger(qp.quantity) && qp.quantity > 0 && !Number.isNaN(qp.price));
+        const quantityPrices = toArray(body.quantityPrices).map((qp) => {
+            const entry = {
+                quantity: typeof qp.quantity === 'string' ? parseInt(qp.quantity, 10) : qp.quantity,
+                price: typeof qp.price === 'string' ? parseFloat(qp.price) : qp.price
+            };
+            if (qp.sheets != null) entry.sheets = typeof qp.sheets === 'string' ? parseInt(qp.sheets, 10) : qp.sheets;
+            if (qp.paperCost != null) entry.paperCost = typeof qp.paperCost === 'string' ? parseFloat(qp.paperCost) : qp.paperCost;
+            if (qp.clickCost != null) entry.clickCost = typeof qp.clickCost === 'string' ? parseFloat(qp.clickCost) : qp.clickCost;
+            if (qp.totalCost != null) entry.totalCost = typeof qp.totalCost === 'string' ? parseFloat(qp.totalCost) : qp.totalCost;
+            if (qp.markup != null) entry.markup = typeof qp.markup === 'string' ? parseFloat(qp.markup) : qp.markup;
+            return entry;
+        }).filter((qp) => qp && Number.isInteger(qp.quantity) && qp.quantity > 0 && !Number.isNaN(qp.price));
 
         // Parse selected paper IDs
         let selectedPaperIds = body.selectedPaperIds;
@@ -218,10 +226,19 @@ exports.updateProduct = async (req, res) => {
             upgradeCost: typeof u.upgradeCost === 'string' ? parseFloat(u.upgradeCost) : u.upgradeCost
         })).filter((u) => u && u.name && u.description && !Number.isNaN(u.upgradeCost));
 
-        const quantityPrices = toArray(body.quantityPrices).map((qp) => ({
-            quantity: typeof qp.quantity === 'string' ? parseInt(qp.quantity, 10) : qp.quantity,
-            price: typeof qp.price === 'string' ? parseFloat(qp.price) : qp.price
-        })).filter((qp) => qp && Number.isInteger(qp.quantity) && qp.quantity > 0 && !Number.isNaN(qp.price));
+        const quantityPrices = toArray(body.quantityPrices).map((qp) => {
+            const entry = {
+                quantity: typeof qp.quantity === 'string' ? parseInt(qp.quantity, 10) : qp.quantity,
+                price: typeof qp.price === 'string' ? parseFloat(qp.price) : qp.price
+            };
+            // Persist breakdown fields if present
+            if (qp.sheets != null) entry.sheets = typeof qp.sheets === 'string' ? parseInt(qp.sheets, 10) : qp.sheets;
+            if (qp.paperCost != null) entry.paperCost = typeof qp.paperCost === 'string' ? parseFloat(qp.paperCost) : qp.paperCost;
+            if (qp.clickCost != null) entry.clickCost = typeof qp.clickCost === 'string' ? parseFloat(qp.clickCost) : qp.clickCost;
+            if (qp.totalCost != null) entry.totalCost = typeof qp.totalCost === 'string' ? parseFloat(qp.totalCost) : qp.totalCost;
+            if (qp.markup != null) entry.markup = typeof qp.markup === 'string' ? parseFloat(qp.markup) : qp.markup;
+            return entry;
+        }).filter((qp) => qp && Number.isInteger(qp.quantity) && qp.quantity > 0 && !Number.isNaN(qp.price));
 
         // Parse selected paper IDs
         let selectedPaperIds = body.selectedPaperIds;
@@ -372,10 +389,10 @@ exports.getAddPaper = async (req, res) => {
 
 exports.createPaper = async (req, res) => {
     try {
-        const { name, category, thickness, finish, description, parentSheetWidth, parentSheetHeight, costPerSheet, upgradeCost } = req.body;
+        const { name, category, thickness, finish, description, parentSheetWidth, parentSheetHeight, cwtPrice, mWeight, upgradeCost } = req.body;
 
         // Validate required fields
-        if (!name || !category || !thickness || !finish || !parentSheetWidth || !parentSheetHeight || !costPerSheet) {
+        if (!name || !category || !thickness || !finish || !parentSheetWidth || !parentSheetHeight || !cwtPrice || !mWeight) {
             return res.status(400).json({ message: 'All required fields must be filled' });
         }
 
@@ -384,6 +401,11 @@ exports.createPaper = async (req, res) => {
 
         // Generate new paper ID
         const newId = 'P' + String(paperData.papers.length + 1).padStart(3, '0');
+
+        // Calculate cost per sheet: (CWT price * M weight) / 100 = price per 1000, then / 1000
+        const cwt = parseFloat(cwtPrice);
+        const mWt = parseFloat(mWeight);
+        const costPerSheet = (cwt * mWt) / 100 / 1000;
 
         // Create new paper object
         const newPaper = {
@@ -397,9 +419,11 @@ exports.createPaper = async (req, res) => {
                 width: parseFloat(parentSheetWidth),
                 height: parseFloat(parentSheetHeight)
             },
-            costPerSheet: parseFloat(costPerSheet),
+            cwtPrice: cwt,
+            mWeight: mWt,
+            costPerSheet: costPerSheet,
             sheetsPerPack: 100,
-            costPerPack: parseFloat(costPerSheet) * 100,
+            costPerPack: costPerSheet * 100,
             upgradeCost: parseFloat(upgradeCost) || 0
         };
 
@@ -435,10 +459,10 @@ exports.getEditPaper = async (req, res) => {
 exports.updatePaper = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, category, thickness, finish, description, parentSheetWidth, parentSheetHeight, costPerSheet, upgradeCost } = req.body;
+        const { name, category, thickness, finish, description, parentSheetWidth, parentSheetHeight, cwtPrice, mWeight, upgradeCost } = req.body;
 
         // Validate required fields
-        if (!name || !category || !thickness || !finish || !parentSheetWidth || !parentSheetHeight || !costPerSheet) {
+        if (!name || !category || !thickness || !finish || !parentSheetWidth || !parentSheetHeight || !cwtPrice || !mWeight) {
             return res.status(400).json({ message: 'All required fields must be filled' });
         }
 
@@ -449,6 +473,11 @@ exports.updatePaper = async (req, res) => {
         if (paperIndex === -1) {
             return res.status(404).json({ message: 'Paper not found' });
         }
+
+        // Calculate cost per sheet: (CWT price * M weight) / 100 = price per 1000, then / 1000
+        const cwt = parseFloat(cwtPrice);
+        const mWt = parseFloat(mWeight);
+        const costPerSheet = (cwt * mWt) / 100 / 1000;
 
         // Update paper object
         paperData.papers[paperIndex] = {
@@ -462,9 +491,11 @@ exports.updatePaper = async (req, res) => {
                 width: parseFloat(parentSheetWidth),
                 height: parseFloat(parentSheetHeight)
             },
-            costPerSheet: parseFloat(costPerSheet),
+            cwtPrice: cwt,
+            mWeight: mWt,
+            costPerSheet: costPerSheet,
             sheetsPerPack: 100,
-            costPerPack: parseFloat(costPerSheet) * 100,
+            costPerPack: costPerSheet * 100,
             upgradeCost: parseFloat(upgradeCost) || 0
         };
 

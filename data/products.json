@@ -27,27 +27,61 @@
       "quantityPrices": [
         {
           "quantity": 50,
-          "price": 15
+          "price": 4.5,
+          "sheets": 3,
+          "paperCost": 0.15,
+          "clickCost": 0.6,
+          "totalCost": 0.75,
+          "markup": 500
         },
         {
           "quantity": 100,
-          "price": 20
+          "price": 1.88,
+          "sheets": 5,
+          "paperCost": 0.25,
+          "clickCost": 1,
+          "totalCost": 1.25,
+          "markup": 50
+        },
+        {
+          "quantity": 150,
+          "price": 2.63,
+          "sheets": 7,
+          "paperCost": 0.35,
+          "clickCost": 1.4,
+          "totalCost": 1.75,
+          "markup": 50
         },
         {
           "quantity": 250,
-          "price": 35
+          "price": 4.13,
+          "sheets": 11,
+          "paperCost": 0.55,
+          "clickCost": 2.2,
+          "totalCost": 2.75,
+          "markup": 50
         },
         {
           "quantity": 500,
-          "price": 60
+          "price": 7.88,
+          "sheets": 21,
+          "paperCost": 1.05,
+          "clickCost": 4.2,
+          "totalCost": 5.25,
+          "markup": 50
         },
         {
           "quantity": 1000,
-          "price": 100
+          "price": 15.75,
+          "sheets": 42,
+          "paperCost": 2.1,
+          "clickCost": 8.4,
+          "totalCost": 10.5,
+          "markup": 50
         }
       ],
       "createdAt": "2025-09-26T00:00:00.000Z",
-      "updatedAt": "2025-09-26T00:00:00.000Z",
+      "updatedAt": "2026-04-04T03:06:18.669Z",
       "clickCosts": {
         "color": 0.1,
         "black": 0.05

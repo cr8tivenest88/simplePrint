@@ -313,19 +313,28 @@ function addQuantityPrice() {
     const template = `
         <tr>
             <td>
-                <input type="number" class="form-control quantity-input" 
-                       name="quantityPrices[${quantityPriceCount}][quantity]" 
+                <input type="number" class="form-control form-control-sm quantity-input"
+                       name="quantityPrices[${quantityPriceCount}][quantity]"
                        required
-                       onchange="updatePricePerCard(this)">
+                       oninput="autoCalculateRowPrice(this)">
+            </td>
+            <td class="sheets-display">-</td>
+            <td class="paper-cost-display">-</td>
+            <td class="click-cost-display">-</td>
+            <td class="total-cost-display">-</td>
+            <td>
+                <input type="number" class="form-control form-control-sm markup-input"
+                       value="50" step="1" min="0"
+                       oninput="recalcPriceFromMarkup(this)">
             </td>
             <td>
-                <input type="number" class="form-control price-input" 
-                       name="quantityPrices[${quantityPriceCount}][price]" 
+                <input type="number" class="form-control form-control-sm price-input"
+                       name="quantityPrices[${quantityPriceCount}][price]"
                        step="0.01" required
                        onchange="updatePricePerCard(this)">
             </td>
             <td>
-                <span class="price-per-card">$0.00</span>
+                <span class="price-per-card">$0.000</span>
             </td>
             <td>
                 <button type="button" class="btn btn-danger btn-sm" onclick="removeQuantityPrice(this)">
@@ -683,22 +692,36 @@ async function autoCalculateAllPrices() {
             // Calculate sheets needed
             const sheetsNeeded = Math.ceil(quantity / numberUp);
 
-            // Calculate paper cost
-            const paperCost = sheetsNeeded * firstPaper.costPerSheet;
+            // Calculate paper cost using CWT formula
+            let costPerSheet = firstPaper.costPerSheet || 0;
+            if (firstPaper.cwtPrice && firstPaper.mWeight) {
+                costPerSheet = (firstPaper.cwtPrice * firstPaper.mWeight) / 100 / 1000;
+            }
+            const paperCost = sheetsNeeded * costPerSheet;
 
-            // Calculate click cost (assume Color front and back as default)
-            const clickCostPerSheet = clickCosts.color * 2; // front + back
+            // Calculate click cost based on front/back color selection
+            const clickCostPerSheet = getClickCostPerSheet();
             const clickCost = sheetsNeeded * clickCostPerSheet;
 
-            // Base cost
-            let calcCost = paperCost + clickCost;
+            // Total cost with size multiplier
+            const totalCost = (paperCost + clickCost) * priceMultiplier;
 
-            // Apply size multiplier
-            calcCost = calcCost * priceMultiplier;
+            // Update display cells
+            row.querySelector('.sheets-display').textContent = sheetsNeeded;
+            row.querySelector('.paper-cost-display').textContent = '$' + paperCost.toFixed(2);
+            row.querySelector('.click-cost-display').textContent = '$' + clickCost.toFixed(2);
+            row.querySelector('.total-cost-display').textContent = '$' + totalCost.toFixed(2);
+
+            // Use row's markup input, or fall back to global markup
+            const markupInput = row.querySelector('.markup-input');
+            const rowMarkup = markupInput ? parseFloat(markupInput.value) : markupPercentage;
+            if (markupInput && !markupInput.value) {
+                markupInput.value = markupPercentage;
+            }
 
             // Apply markup
-            const markupMultiplier = 1 + (markupPercentage / 100);
-            let finalPrice = calcCost * markupMultiplier;
+            const markupMultiplier = 1 + (rowMarkup / 100);
+            let finalPrice = totalCost * markupMultiplier;
 
             // Round up to nearest cent
             finalPrice = Math.ceil(finalPrice * 100) / 100;
@@ -716,6 +739,130 @@ async function autoCalculateAllPrices() {
         console.error('Error auto-calculating prices:', error);
         showNotification('Error', 'Failed to calculate prices: ' + error.message, 'danger');
     }
+}
+
+// Get click cost per sheet based on front/back color selection
+function getClickCostPerSheet() {
+    const clickCosts = {
+        color: parseFloat(document.querySelector('input[name="clickCosts[color]"]').value) || 0.10,
+        black: parseFloat(document.querySelector('input[name="clickCosts[black]"]').value) || 0.05
+    };
+
+    const frontColor = document.getElementById('calcFrontColor')?.value || 'Color';
+    const backColor = document.getElementById('calcBackColor')?.value || 'Color';
+
+    let cost = 0;
+    if (frontColor === 'Color') cost += clickCosts.color;
+    else if (frontColor === 'Black') cost += clickCosts.black;
+
+    if (backColor === 'Color') cost += clickCosts.color;
+    else if (backColor === 'Black') cost += clickCosts.black;
+
+    return cost;
+}
+
+// Calculate a single row's breakdown when quantity changes
+function autoCalculateRowPrice(input) {
+    const row = input.closest('tr');
+    if (!row) return;
+
+    const quantity = parseInt(input.value);
+    if (!quantity || quantity <= 0) return;
+
+    // Get selected papers
+    const selectedPaperIdsInput = document.getElementById('selectedPaperIds');
+    if (!selectedPaperIdsInput || !selectedPaperIdsInput.value) return;
+    const selectedPaperIds = selectedPaperIdsInput.value.split(',').map(id => id.trim());
+
+    // Get first paper for calculation
+    const firstPaper = window.papers.find(p => selectedPaperIds.includes(p.id));
+    if (!firstPaper) return;
+
+    // Get first size
+    const firstSizeEntry = document.querySelector('.size-entry');
+    if (!firstSizeEntry) return;
+
+    const width = parseFloat(firstSizeEntry.querySelector('input[name$="[width]"]').value);
+    const height = parseFloat(firstSizeEntry.querySelector('input[name$="[height]"]').value);
+    const priceMultiplier = parseFloat(firstSizeEntry.querySelector('input[name$="[priceMultiplier]"]').value);
+    if (!width || !height || !priceMultiplier) return;
+
+    // Calculate number up
+    const bleed = 0.125;
+    const jobWidth = width + (bleed * 2);
+    const jobHeight = height + (bleed * 2);
+    const acrossSheet = Math.floor(firstPaper.parentSheetSize.width / jobWidth);
+    const downSheet = Math.floor(firstPaper.parentSheetSize.height / jobHeight);
+    const numberUp = acrossSheet * downSheet;
+    if (numberUp === 0) return;
+
+    // Calculate sheets needed
+    const sheetsNeeded = Math.ceil(quantity / numberUp);
+
+    // Calculate paper cost using CWT formula: costPerSheet = (cwtPrice * mWeight) / 100 / 1000
+    let costPerSheet = firstPaper.costPerSheet || 0;
+    if (firstPaper.cwtPrice && firstPaper.mWeight) {
+        costPerSheet = (firstPaper.cwtPrice * firstPaper.mWeight) / 100 / 1000;
+    }
+    const paperCost = sheetsNeeded * costPerSheet;
+
+    // Calculate click cost based on front/back color selection
+    const clickCostPerSheet = getClickCostPerSheet();
+    const clickCost = sheetsNeeded * clickCostPerSheet;
+
+    // Total cost (before markup), apply size multiplier
+    const totalCost = (paperCost + clickCost) * priceMultiplier;
+
+    // Update display cells
+    row.querySelector('.sheets-display').textContent = sheetsNeeded;
+    row.querySelector('.paper-cost-display').textContent = '$' + paperCost.toFixed(2);
+    row.querySelector('.click-cost-display').textContent = '$' + clickCost.toFixed(2);
+    row.querySelector('.total-cost-display').textContent = '$' + totalCost.toFixed(2);
+
+    // Apply markup to calculate price
+    const markupInput = row.querySelector('.markup-input');
+    const markup = parseFloat(markupInput.value) || 0;
+    const markupMultiplier = 1 + (markup / 100);
+    const finalPrice = Math.ceil(totalCost * markupMultiplier * 100) / 100;
+
+    const priceInput = row.querySelector('.price-input');
+    priceInput.value = finalPrice.toFixed(2);
+    updatePricePerCard(priceInput);
+}
+
+// Recalculate all rows when front/back color changes
+function recalcAllRows() {
+    document.querySelectorAll('#quantityPricesContainer tbody tr').forEach(row => {
+        const quantityInput = row.querySelector('.quantity-input');
+        if (quantityInput && quantityInput.value) {
+            autoCalculateRowPrice(quantityInput);
+        }
+    });
+}
+
+// Recalculate price when markup % changes
+function recalcPriceFromMarkup(input) {
+    const row = input.closest('tr');
+    if (!row) return;
+
+    const totalCostText = row.querySelector('.total-cost-display').textContent.trim();
+    if (totalCostText === '-') {
+        // No calculation yet, trigger full calculation
+        const quantityInput = row.querySelector('.quantity-input');
+        if (quantityInput && quantityInput.value) {
+            autoCalculateRowPrice(quantityInput);
+        }
+        return;
+    }
+
+    const totalCost = parseFloat(totalCostText.replace('$', ''));
+    const markup = parseFloat(input.value) || 0;
+    const markupMultiplier = 1 + (markup / 100);
+    const finalPrice = Math.ceil(totalCost * markupMultiplier * 100) / 100;
+
+    const priceInput = row.querySelector('.price-input');
+    priceInput.value = finalPrice.toFixed(2);
+    updatePricePerCard(priceInput);
 }
 
 // Initialize number up calculations on page load (for edit-product page)

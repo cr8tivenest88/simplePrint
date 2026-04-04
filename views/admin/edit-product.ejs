@@ -373,6 +373,24 @@
                                         </button>
                                     </div>
                                 </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-3">
+                                        <label class="form-label">Front Color</label>
+                                        <select class="form-select form-select-sm" id="calcFrontColor" onchange="recalcAllRows()">
+                                            <option value="Color">Color</option>
+                                            <option value="Black">Black</option>
+                                            <option value="No Print">No Print</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Back Color</label>
+                                        <select class="form-select form-select-sm" id="calcBackColor" onchange="recalcAllRows()">
+                                            <option value="Color">Color</option>
+                                            <option value="Black">Black</option>
+                                            <option value="No Print">No Print</option>
+                                        </select>
+                                    </div>
+                                </div>
                                 <div id="quantityPricesContainer" class="table-responsive">
                                     <table class="table table-bordered table-sm">
                                         <thead class="table-light">
@@ -397,11 +415,15 @@
                                                                value="<%= qp.quantity %>" required
                                                                oninput="autoCalculateRowPrice(this)">
                                                     </td>
-                                                    <td class="sheets-display">-</td>
-                                                    <td class="paper-cost-display">-</td>
-                                                    <td class="click-cost-display">-</td>
-                                                    <td class="total-cost-display">-</td>
-                                                    <td class="markup-display">-</td>
+                                                    <td class="sheets-display"><%= qp.sheets || '-' %></td>
+                                                    <td class="paper-cost-display"><%= qp.paperCost != null ? '$' + qp.paperCost.toFixed(2) : '-' %></td>
+                                                    <td class="click-cost-display"><%= qp.clickCost != null ? '$' + qp.clickCost.toFixed(2) : '-' %></td>
+                                                    <td class="total-cost-display"><%= qp.totalCost != null ? '$' + qp.totalCost.toFixed(2) : '-' %></td>
+                                                    <td>
+                                                        <input type="number" class="form-control form-control-sm markup-input"
+                                                               value="<%= qp.markup != null ? qp.markup : 50 %>" step="1" min="0"
+                                                               oninput="recalcPriceFromMarkup(this)">
+                                                    </td>
                                                     <td>
                                                         <input type="number" class="form-control form-control-sm price-input"
                                                                name="quantityPrices[<%= index %>][price]"
@@ -803,20 +825,31 @@
                     }
                 });
 
-                // Collect quantity prices
+                // Collect quantity prices with breakdown
                 data.quantityPrices = [];
                 document.querySelectorAll('#quantityPricesContainer tbody tr').forEach((row, index) => {
                     try {
+                        const sheetsText = row.querySelector('.sheets-display').textContent.trim();
+                        const paperCostText = row.querySelector('.paper-cost-display').textContent.trim();
+                        const clickCostText = row.querySelector('.click-cost-display').textContent.trim();
+                        const totalCostText = row.querySelector('.total-cost-display').textContent.trim();
+                        const markupInput = row.querySelector('.markup-input');
+
                         const quantityPrice = {
                             quantity: parseInt(row.querySelector('.quantity-input').value),
-                            price: parseFloat(row.querySelector('.price-input').value)
+                            price: parseFloat(row.querySelector('.price-input').value),
+                            sheets: sheetsText !== '-' ? parseInt(sheetsText) : null,
+                            paperCost: paperCostText !== '-' ? parseFloat(paperCostText.replace('$', '')) : null,
+                            clickCost: clickCostText !== '-' ? parseFloat(clickCostText.replace('$', '')) : null,
+                            totalCost: totalCostText !== '-' ? parseFloat(totalCostText.replace('$', '')) : null,
+                            markup: markupInput ? parseFloat(markupInput.value) : null
                         };
-                        
+
                         // Validate quantity price data
                         if (isNaN(quantityPrice.quantity) || isNaN(quantityPrice.price) || quantityPrice.quantity <= 0 || quantityPrice.price < 0) {
                             throw new Error(`Invalid quantity price data at index ${index}`);
                         }
-                        
+
                         data.quantityPrices.push(quantityPrice);
                     } catch (error) {
                         throw new Error(`Error processing quantity price at index ${index}: ${error.message}`);

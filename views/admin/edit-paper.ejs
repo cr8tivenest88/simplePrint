@@ -91,22 +91,30 @@
                             <!-- Pricing -->
                             <div class="mb-4">
                                 <h5>Pricing</h5>
+                                <small class="text-muted d-block mb-3">Formula: Price per 1000 sheets = (CWT Price x M Weight) / 100</small>
                                 <div class="row">
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <div class="mb-3">
-                                            <label class="form-label">Cost per 1000 Sheets ($) *</label>
-                                            <input type="number" step="0.01" class="form-control" name="costPer1000" id="costPer1000" value="<%= (paper.costPerSheet * 1000).toFixed(2) %>" required>
-                                            <small class="text-muted">Enter cost for 1000 sheets</small>
+                                            <label class="form-label">CWT Price ($) *</label>
+                                            <input type="number" step="0.01" class="form-control" name="cwtPrice" id="cwtPrice" value="<%= paper.cwtPrice || 0 %>" required oninput="recalcPaperCost()">
+                                            <small class="text-muted">Price per hundredweight (100 lbs)</small>
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label class="form-label">M Weight (lbs) *</label>
+                                            <input type="number" step="0.01" class="form-control" name="mWeight" id="mWeight" value="<%= paper.mWeight || 0 %>" required oninput="recalcPaperCost()">
+                                            <small class="text-muted">Weight of 1000 sheets at basis size</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
                                         <div class="mb-3">
                                             <label class="form-label">Cost per Sheet ($)</label>
-                                            <input type="number" step="0.001" class="form-control" name="costPerSheet" id="costPerSheet" value="<%= paper.costPerSheet.toFixed(4) %>" readonly>
+                                            <input type="number" step="0.0001" class="form-control" name="costPerSheet" id="costPerSheet" value="<%= paper.costPerSheet.toFixed(4) %>" readonly>
                                             <small class="text-muted">Auto-calculated</small>
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <div class="mb-3">
                                             <label class="form-label">Upgrade Cost ($) *</label>
                                             <input type="number" step="0.01" class="form-control" name="upgradeCost" value="<%= paper.upgradeCost %>" required>
@@ -129,12 +137,14 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Auto-calculate cost per sheet from cost per 1000
-        document.getElementById('costPer1000').addEventListener('input', function() {
-            const costPer1000 = parseFloat(this.value) || 0;
-            const costPerSheet = costPer1000 / 1000;
+        // Auto-calculate cost per sheet from CWT price and M weight
+        function recalcPaperCost() {
+            const cwtPrice = parseFloat(document.getElementById('cwtPrice').value) || 0;
+            const mWeight = parseFloat(document.getElementById('mWeight').value) || 0;
+            const pricePerThousand = (cwtPrice * mWeight) / 100;
+            const costPerSheet = pricePerThousand / 1000;
             document.getElementById('costPerSheet').value = costPerSheet.toFixed(4);
-        });
+        }
     </script>
 </body>
 </html>

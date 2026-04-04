@@ -85,8 +85,11 @@ class CalculatorService {
         // Calculate sheets needed for quantity
         const sheetsNeeded = Math.ceil(input.quantity / numberUp);
 
-        // Calculate paper cost
-        const paperCostPerSheet = paper.costPerSheet || 0;
+        // Calculate paper cost using CWT formula: (cwtPrice * mWeight) / 100 = price per 1000
+        let paperCostPerSheet = paper.costPerSheet || 0;
+        if (paper.cwtPrice && paper.mWeight) {
+            paperCostPerSheet = (paper.cwtPrice * paper.mWeight) / 100 / 1000;
+        }
         const paperCostTotal = sheetsNeeded * paperCostPerSheet;
 
         // Calculate click costs
@@ -142,8 +145,13 @@ class CalculatorService {
             }
         }
 
-        // Calculate grand total
-        const grandTotal = subtotal + paperUpgradeCost + upgradesCost;
+        // Apply markup to the dynamically calculated cost so color choices affect the price
+        const markupPercent = quantityPrice.markup != null ? quantityPrice.markup : 50;
+        const markupMultiplier = 1 + (markupPercent / 100);
+        const markedUpSubtotal = Math.ceil(subtotal * markupMultiplier * 100) / 100;
+
+        // Grand total = marked-up cost + paper upgrade + upgrades
+        const grandTotal = markedUpSubtotal + paperUpgradeCost + upgradesCost;
         const unitPrice = grandTotal / input.quantity;
 
         const calcMs = Date.now() - startTime;
@@ -164,16 +172,18 @@ class CalculatorService {
             calculation: {
                 numberUp: numberUp,
                 sheetsNeeded: sheetsNeeded,
-                paperCostPerSheet: parseFloat(paperCostPerSheet.toFixed(2)),
+                paperCostPerSheet: parseFloat(paperCostPerSheet.toFixed(4)),
                 paperCostTotal: parseFloat(paperCostTotal.toFixed(2)),
                 clickCostPerSheet: parseFloat(clickCostPerSheet.toFixed(2)),
-                clickCostTotal: parseFloat(clickCostTotal.toFixed(2))
+                clickCostTotal: parseFloat(clickCostTotal.toFixed(2)),
+                markupPercent: markupPercent
             },
             totals: {
                 basePrice: parseFloat(basePrice.toFixed(2)),
                 sizeMultiplier: sizeMultiplier,
                 sizeAdjustment: parseFloat(sizeAdjustment.toFixed(2)),
                 subtotal: parseFloat(subtotal.toFixed(2)),
+                markedUpSubtotal: parseFloat(markedUpSubtotal.toFixed(2)),
                 paperUpgrade: parseFloat(paperUpgradeCost.toFixed(2)),
                 upgradesCost: parseFloat(upgradesCost.toFixed(2)),
                 grandTotal: parseFloat(grandTotal.toFixed(2)),
@@ -181,7 +191,7 @@ class CalculatorService {
             },
             lineItems: [
                 {
-                    description: `Paper Cost (${sheetsNeeded} sheets @ $${paperCostPerSheet.toFixed(2)})`,
+                    description: `Paper Cost (${sheetsNeeded} sheets @ $${paperCostPerSheet.toFixed(4)})`,
                     quantity: sheetsNeeded,
                     unitPrice: paperCostPerSheet,
                     total: paperCostTotal
@@ -198,6 +208,12 @@ class CalculatorService {
                     unitPrice: sizeAdjustment,
                     total: sizeAdjustment
                 }] : []),
+                {
+                    description: `Markup (${markupPercent}%)`,
+                    quantity: 1,
+                    unitPrice: parseFloat((markedUpSubtotal - subtotal).toFixed(2)),
+                    total: parseFloat((markedUpSubtotal - subtotal).toFixed(2))
+                },
                 ...(paperUpgradeCost > 0 ? [{
                     description: `Paper upgrade (${paper.name})`,
                     quantity: 1,

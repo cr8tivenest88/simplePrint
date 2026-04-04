@@ -11,6 +11,8 @@
         "width": 13,
         "height": 19
       },
+      "cwtPrice": 50,
+      "mWeight": 100,
       "costPerSheet": 0.05,
       "sheetsPerPack": 100,
       "costPerPack": 5.00,
@@ -27,6 +29,8 @@
         "width": 13,
         "height": 19
       },
+      "cwtPrice": 50,
+      "mWeight": 100,
       "costPerSheet": 0.05,
       "sheetsPerPack": 100,
       "costPerPack": 5.00,
@@ -43,6 +47,8 @@
         "width": 13,
         "height": 19
       },
+      "cwtPrice": 50,
+      "mWeight": 100,
       "costPerSheet": 0.05,
       "sheetsPerPack": 100,
       "costPerPack": 5.00,
@@ -59,6 +65,8 @@
         "width": 13,
         "height": 19
       },
+      "cwtPrice": 80,
+      "mWeight": 125,
       "costPerSheet": 0.10,
       "sheetsPerPack": 100,
       "costPerPack": 10.00,
@@ -75,6 +83,8 @@
         "width": 13,
         "height": 19
       },
+      "cwtPrice": 96,
+      "mWeight": 125,
       "costPerSheet": 0.12,
       "sheetsPerPack": 100,
       "costPerPack": 12.00,
@@ -91,6 +101,8 @@
         "width": 13,
         "height": 19
       },
+      "cwtPrice": 88,
+      "mWeight": 125,
       "costPerSheet": 0.11,
       "sheetsPerPack": 100,
       "costPerPack": 11.00,
@@ -107,6 +119,8 @@
         "width": 13,
         "height": 19
       },
+      "cwtPrice": 86.67,
+      "mWeight": 150,
       "costPerSheet": 0.13,
       "sheetsPerPack": 100,
       "costPerPack": 13.00,
@@ -123,6 +137,8 @@
         "width": 13,
         "height": 19
       },
+      "cwtPrice": 86.67,
+      "mWeight": 150,
       "costPerSheet": 0.13,
       "sheetsPerPack": 100,
       "costPerPack": 13.00,
