@@ -232,8 +232,11 @@
         const paperId = document.getElementById('sp-paper').value;
         const quantity = parseInt(document.getElementById('sp-quantity').value);
 
-        // Only calculate if required fields are filled
-        if (!productId || !paperId || !quantity || quantity < 1) {
+        const colorFront = document.getElementById('sp-color-front').value;
+        const colorBack = document.getElementById('sp-color-back').value;
+
+        // Only calculate if all required fields are filled
+        if (!productId || !paperId || !quantity || quantity < 1 || !colorFront || !colorBack) {
           document.getElementById('sp-price-display').style.display = 'none';
           document.getElementById('sp-save-quote-btn').style.display = 'none';
           return;
@@ -253,10 +256,6 @@
         try {
           // Get size from selected product
           const size = selectedProduct?.sizes?.[0]?.name || 'Standard US';
-
-          // Get front and back colors
-          const colorFront = document.getElementById('sp-color-front').value;
-          const colorBack = document.getElementById('sp-color-back').value;
 
           const response = await fetch(`${calculatorHost}/api/v1/calculate`, {
             method: 'POST',
@@ -294,20 +293,31 @@
 
           const totals = data.totals || {};
 
-          // Build upgrades display
-          let upgradesHTML = '';
-          if (data.appliedUpgrades && data.appliedUpgrades.length > 0) {
-            upgradesHTML += '<hr style="margin: 10px 0;">';
-            upgradesHTML += '<p style="margin: 5px 0;"><strong>Selected Upgrades:</strong></p>';
-            data.appliedUpgrades.forEach(upgrade => {
-              upgradesHTML += `<p style="margin: 5px 0 5px 15px;">• ${upgrade.name}: +$${upgrade.cost.toFixed(2)}</p>`;
+          // Build line items breakdown
+          let lineItemsHTML = '';
+          if (data.lineItems && data.lineItems.length > 0) {
+            lineItemsHTML += '<table style="width:100%; border-collapse:collapse; margin:10px 0; font-size:0.9em;">';
+            lineItemsHTML += '<thead><tr style="border-bottom:2px solid #ccc; text-align:left;">';
+            lineItemsHTML += '<th style="padding:4px 8px;">Description</th>';
+            lineItemsHTML += '<th style="padding:4px 8px; text-align:right;">Amount</th>';
+            lineItemsHTML += '</tr></thead><tbody>';
+            data.lineItems.forEach(item => {
+              lineItemsHTML += `<tr style="border-bottom:1px solid #eee;">`;
+              lineItemsHTML += `<td style="padding:4px 8px;">${item.description}</td>`;
+              lineItemsHTML += `<td style="padding:4px 8px; text-align:right;">$${item.total.toFixed(2)}</td>`;
+              lineItemsHTML += `</tr>`;
             });
+            lineItemsHTML += '<tr style="border-top:2px solid #333; font-weight:bold;">';
+            lineItemsHTML += `<td style="padding:6px 8px;">Grand Total</td>`;
+            lineItemsHTML += `<td style="padding:6px 8px; text-align:right;">$${(totals.grandTotal || 0).toFixed(2)}</td>`;
+            lineItemsHTML += '</tr>';
+            lineItemsHTML += '</tbody></table>';
           }
 
           document.getElementById('sp-price-details').innerHTML = `
             <p style="margin: 10px 0; font-size: 1.3em;"><strong>Total Price: $${(totals.grandTotal || 0).toFixed(2)}</strong></p>
             <p style="margin: 5px 0; color: #666;">Price per card: $${(totals.unitPrice || 0).toFixed(3)}</p>
-            ${upgradesHTML}
+            ${lineItemsHTML}
           `;
 
           document.getElementById('sp-save-quote-btn').style.display = 'block';
@@ -346,7 +356,15 @@
 
       // Attach event listeners
       document.getElementById('sp-product').addEventListener('change', handleProductChange);
-      document.getElementById('sp-paper').addEventListener('change', autoCalculate);
+      document.getElementById('sp-paper').addEventListener('change', function() {
+        if (this.value) {
+          const frontSelect = document.getElementById('sp-color-front');
+          const backSelect = document.getElementById('sp-color-back');
+          if (!frontSelect.value) frontSelect.value = 'Color';
+          if (!backSelect.value) backSelect.value = 'Color';
+        }
+        autoCalculate();
+      });
       document.getElementById('sp-quantity').addEventListener('change', autoCalculate);
       document.getElementById('sp-color-front').addEventListener('change', autoCalculate);
       document.getElementById('sp-color-back').addEventListener('change', autoCalculate);

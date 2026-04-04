@@ -5,6 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Quotes - Mock WordPress</title>
   <link rel="stylesheet" href="/static/styles.css">
+  <style>
+    .quote-details { display: none; background: #f5f5f5; padding: 15px; margin: 5px 0; border-radius: 4px; }
+    .quote-details.open { display: block; }
+    .quote-row { cursor: pointer; }
+    .quote-row:hover { background: #eef; }
+    .breakdown-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.9em; }
+    .breakdown-table th, .breakdown-table td { padding: 6px 10px; text-align: left; border-bottom: 1px solid #ddd; }
+    .breakdown-table th { background: #e8e8e8; }
+    .breakdown-table .total-row { font-weight: bold; border-top: 2px solid #333; }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+    .detail-grid dt { color: #666; margin: 0; }
+    .detail-grid dd { margin: 0; font-weight: bold; }
+    .toggle-hint { font-size: 0.8em; color: #999; }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -28,25 +42,100 @@
               <th>Product</th>
               <th>Quantity</th>
               <th>Grand Total</th>
+              <th>Unit Price</th>
               <th>Created</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody>
-            <% quotes.forEach(q => { %>
-              <tr>
+            <% quotes.forEach(q => {
+              const p = q.payload || {};
+              const totals = p.totals || {};
+            %>
+              <tr class="quote-row" onclick="toggleDetails('details-<%= q.id %>')">
                 <td><%= q.id %></td>
-                <td><%= q.payload.productId %></td>
-                <td><%= q.payload.quantity %></td>
-                <td>$<%= q.payload.totals.grandTotal.toFixed(2) %></td>
+                <td><%= p.productName || p.productId || '-' %></td>
+                <td><%= p.quantity || '-' %></td>
+                <td>$<%= totals.grandTotal != null ? totals.grandTotal.toFixed(2) : '-' %></td>
+                <td>$<%= totals.unitPrice != null ? totals.unitPrice.toFixed(3) : '-' %></td>
                 <td><%= new Date(q.created_at).toLocaleString() %></td>
                 <td><%= q.status %></td>
+              </tr>
+              <tr>
+                <td colspan="7" style="padding:0;">
+                  <div class="quote-details" id="details-<%= q.id %>">
+                    <h3>Quote #<%= q.id %> — Price Breakdown</h3>
+
+                    <div class="detail-grid">
+                      <dt>Product</dt>
+                      <dd><%= p.productName || p.productId %></dd>
+                      <dt>Paper</dt>
+                      <dd><%= p.paperName || p.paperId || '-' %></dd>
+                      <dt>Size</dt>
+                      <dd><%= p.size || '-' %></dd>
+                      <dt>Quantity</dt>
+                      <dd><%= p.quantity %></dd>
+                      <% if (p.inputs) { %>
+                        <dt>Front Color</dt>
+                        <dd><%= p.inputs.colorFront || '-' %></dd>
+                        <dt>Back Color</dt>
+                        <dd><%= p.inputs.colorBack || '-' %></dd>
+                      <% } %>
+                    </div>
+
+                    <% if (p.lineItems && p.lineItems.length > 0) { %>
+                      <table class="breakdown-table">
+                        <thead>
+                          <tr>
+                            <th>Description</th>
+                            <th style="text-align:right;">Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <% p.lineItems.forEach(item => { %>
+                            <tr>
+                              <td><%= item.description %></td>
+                              <td style="text-align:right;">$<%= item.total.toFixed(2) %></td>
+                            </tr>
+                          <% }); %>
+                          <tr class="total-row">
+                            <td>Grand Total</td>
+                            <td style="text-align:right;">$<%= totals.grandTotal.toFixed(2) %></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    <% } %>
+
+                    <% if (p.appliedUpgrades && p.appliedUpgrades.length > 0) { %>
+                      <h4>Applied Upgrades</h4>
+                      <ul>
+                        <% p.appliedUpgrades.forEach(u => { %>
+                          <li><strong><%= u.name %></strong>: +$<%= u.cost.toFixed(2) %> — <%= u.description %></li>
+                        <% }); %>
+                      </ul>
+                    <% } %>
+
+                    <% if (p.meta) { %>
+                      <p style="color:#999; font-size:0.8em; margin-top:10px;">
+                        Engine <%= p.meta.version || '' %> &middot; Calculated in <%= p.meta.calcMs || 0 %>ms &middot; <%= p.meta.timestamp || '' %>
+                      </p>
+                    <% } %>
+                  </div>
+                </td>
               </tr>
             <% }); %>
           </tbody>
         </table>
+        <p class="toggle-hint">Click a row to expand the price breakdown.</p>
       <% } %>
     </main>
   </div>
+
+  <script>
+    function toggleDetails(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('open');
+    }
+  </script>
 </body>
 </html>

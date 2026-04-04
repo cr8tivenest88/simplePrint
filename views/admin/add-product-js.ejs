@@ -316,7 +316,7 @@ function addQuantityPrice() {
                 <input type="number" class="form-control form-control-sm quantity-input"
                        name="quantityPrices[${quantityPriceCount}][quantity]"
                        required
-                       oninput="autoCalculateRowPrice(this)">
+                       onchange="autoCalculateRowPrice(this)">
             </td>
             <td class="sheets-display">-</td>
             <td class="paper-cost-display">-</td>
@@ -325,7 +325,7 @@ function addQuantityPrice() {
             <td>
                 <input type="number" class="form-control form-control-sm markup-input"
                        value="50" step="1" min="0"
-                       oninput="recalcPriceFromMarkup(this)">
+                       onchange="recalcPriceFromMarkup(this)">
             </td>
             <td>
                 <input type="number" class="form-control form-control-sm price-input"

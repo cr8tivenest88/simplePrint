@@ -27,61 +27,61 @@
       "quantityPrices": [
         {
           "quantity": 50,
-          "price": 4.5,
+          "price": 2.7,
           "sheets": 3,
           "paperCost": 0.15,
-          "clickCost": 0.6,
-          "totalCost": 0.75,
+          "clickCost": 0.3,
+          "totalCost": 0.45,
           "markup": 500
         },
         {
           "quantity": 100,
-          "price": 1.88,
+          "price": 1.13,
           "sheets": 5,
           "paperCost": 0.25,
-          "clickCost": 1,
-          "totalCost": 1.25,
+          "clickCost": 0.5,
+          "totalCost": 0.75,
           "markup": 50
         },
         {
           "quantity": 150,
-          "price": 2.63,
+          "price": 1.58,
           "sheets": 7,
           "paperCost": 0.35,
-          "clickCost": 1.4,
-          "totalCost": 1.75,
+          "clickCost": 0.7,
+          "totalCost": 1.05,
           "markup": 50
         },
         {
           "quantity": 250,
-          "price": 4.13,
+          "price": 2.48,
           "sheets": 11,
           "paperCost": 0.55,
-          "clickCost": 2.2,
-          "totalCost": 2.75,
+          "clickCost": 1.1,
+          "totalCost": 1.65,
           "markup": 50
         },
         {
           "quantity": 500,
-          "price": 7.88,
+          "price": 4.73,
           "sheets": 21,
           "paperCost": 1.05,
-          "clickCost": 4.2,
-          "totalCost": 5.25,
+          "clickCost": 2.1,
+          "totalCost": 3.15,
           "markup": 50
         },
         {
           "quantity": 1000,
-          "price": 15.75,
+          "price": 9.46,
           "sheets": 42,
           "paperCost": 2.1,
-          "clickCost": 8.4,
-          "totalCost": 10.5,
+          "clickCost": 4.2,
+          "totalCost": 6.3,
           "markup": 50
         }
       ],
       "createdAt": "2025-09-26T00:00:00.000Z",
-      "updatedAt": "2026-04-04T03:06:18.669Z",
+      "updatedAt": "2026-04-04T03:51:26.552Z",
       "clickCosts": {
         "color": 0.1,
         "black": 0.05
@@ -266,6 +266,67 @@
       "createdAt": "2025-10-04T07:31:23.707Z",
       "updatedAt": "2025-10-04T07:31:23.707Z",
       "id": "6"
+    },
+    {
+      "name": "Greeting Card",
+      "description": "5x7 greeting card",
+      "isActive": true,
+      "sizes": [
+        {
+          "name": "PostCard",
+          "width": 7,
+          "height": 5,
+          "priceMultiplier": 1
+        },
+        {
+          "name": "PostCard Portraight",
+          "width": 5,
+          "height": 7,
+          "priceMultiplier": 1
+        }
+      ],
+      "upgrades": [
+        {
+          "name": "Rounded Corners",
+          "description": "Quarter-inch rounded edges for a modern look.",
+          "upgradeCost": 2
+        },
+        {
+          "name": "Envelopes",
+          "description": "100 pcs",
+          "upgradeCost": 10
+        }
+      ],
+      "quantityPrices": [
+        {
+          "quantity": 5000,
+          "price": 625.13,
+          "sheets": 1667,
+          "paperCost": 83.35,
+          "clickCost": 333.4,
+          "totalCost": 416.75,
+          "markup": 50
+        },
+        {
+          "quantity": 10000,
+          "price": 1250.26,
+          "sheets": 3334,
+          "paperCost": 166.7,
+          "clickCost": 666.8,
+          "totalCost": 833.5,
+          "markup": 50
+        }
+      ],
+      "selectedPaperIds": [
+        "P003"
+      ],
+      "clickCosts": {
+        "color": 0.1,
+        "black": 0.05
+      },
+      "createdAt": "2026-04-04T03:55:01.033Z",
+      "updatedAt": "2026-04-04T05:18:19.042Z",
+      "id": "7"
     }
   ]
 }

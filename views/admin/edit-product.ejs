@@ -413,7 +413,7 @@
                                                         <input type="number" class="form-control form-control-sm quantity-input"
                                                                name="quantityPrices[<%= index %>][quantity]"
                                                                value="<%= qp.quantity %>" required
-                                                               oninput="autoCalculateRowPrice(this)">
+                                                               onchange="autoCalculateRowPrice(this)">
                                                     </td>
                                                     <td class="sheets-display"><%= qp.sheets || '-' %></td>
                                                     <td class="paper-cost-display"><%= qp.paperCost != null ? '$' + qp.paperCost.toFixed(2) : '-' %></td>
@@ -422,7 +422,7 @@
                                                     <td>
                                                         <input type="number" class="form-control form-control-sm markup-input"
                                                                value="<%= qp.markup != null ? qp.markup : 50 %>" step="1" min="0"
-                                                               oninput="recalcPriceFromMarkup(this)">
+                                                               onchange="recalcPriceFromMarkup(this)">
                                                     </td>
                                                     <td>
                                                         <input type="number" class="form-control form-control-sm price-input"
