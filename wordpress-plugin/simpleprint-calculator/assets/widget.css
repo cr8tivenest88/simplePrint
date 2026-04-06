@@ -1,0 +1,142 @@
+/* SimplePrint Calculator — default widget styles */
+
+.simpleprint-calculator-container {
+    max-width: 640px;
+    margin: 1.5em 0;
+}
+
+.sp-widget {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #ffffff;
+    border: 1px solid #e3e8ef;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(20, 30, 50, 0.06);
+}
+
+.sp-widget-loading,
+.sp-widget-error {
+    text-align: center;
+    padding: 24px;
+    color: #6b7280;
+    font-size: 0.95em;
+}
+
+.sp-widget-error {
+    color: #b91c1c;
+    background: #fef2f2;
+    border-radius: 8px;
+}
+
+.sp-form-group {
+    margin-bottom: 16px;
+}
+
+.sp-form-group label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9em;
+    color: #1f2937;
+    margin-bottom: 6px;
+}
+
+.sp-widget select,
+.sp-widget input[type="text"],
+.sp-widget input[type="number"] {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 1em;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #111827;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    box-sizing: border-box;
+}
+
+.sp-widget select:focus,
+.sp-widget input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.sp-upgrade-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.sp-upgrade-checkbox:hover {
+    background: #f3f4f6;
+}
+
+.sp-upgrade-checkbox input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+}
+
+#sp-price-display {
+    margin-top: 24px !important;
+    padding: 18px !important;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%) !important;
+    border: 1px solid #bfdbfe;
+    border-radius: 10px !important;
+}
+
+#sp-price-content {
+    color: #1e3a8a;
+}
+
+#sp-price-content strong {
+    font-size: 1.25em;
+    color: #1e40af;
+}
+
+#sp-price-loading {
+    color: #6b7280;
+    font-style: italic;
+}
+
+.sp-btn-primary {
+    display: inline-block;
+    width: 100%;
+    padding: 12px 20px;
+    margin-top: 16px;
+    font-size: 1em;
+    font-weight: 600;
+    color: #ffffff;
+    background: #2563eb;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.05s ease;
+}
+
+.sp-btn-primary:hover {
+    background: #1d4ed8;
+}
+
+.sp-btn-primary:active {
+    transform: translateY(1px);
+}
+
+.sp-btn-primary:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+    .sp-widget {
+        padding: 16px;
+        border-radius: 8px;
+    }
+}

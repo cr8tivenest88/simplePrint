@@ -126,9 +126,20 @@ function simpleprint_enqueue_widget() {
         'simpleprint-widget',
         simpleprint_get_api_url() . '/widget.js',
         array(),
-        '1.2.0',
+        '1.3.0',
         true
     );
+    wp_enqueue_style(
+        'simpleprint-widget-css',
+        plugin_dir_url( __FILE__ ) . 'assets/widget.css',
+        array(),
+        '1.3.0'
+    );
+    // Inject custom CSS from settings (if any)
+    $custom_css = trim( (string) get_option( 'simpleprint_custom_css', '' ) );
+    if ( $custom_css !== '' ) {
+        wp_add_inline_style( 'simpleprint-widget-css', $custom_css );
+    }
 }
 
 function simpleprint_calculator_shortcode( $atts ) {
@@ -202,6 +213,7 @@ add_action( 'admin_menu', 'simpleprint_admin_menu' );
 
 function simpleprint_register_settings() {
     register_setting( 'simpleprint_settings', 'simpleprint_api_url' );
+    register_setting( 'simpleprint_settings', 'simpleprint_custom_css' );
 }
 add_action( 'admin_init', 'simpleprint_register_settings' );
 
@@ -414,6 +426,18 @@ function simpleprint_settings_page() {
                             class="regular-text"
                             placeholder="<?php echo esc_attr( SIMPLEPRINT_DEFAULT_API ); ?>" />
                         <p class="description">Base URL of your SimplePrint API (no trailing slash).</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="simpleprint_custom_css">Custom CSS</label></th>
+                    <td>
+                        <textarea id="simpleprint_custom_css" name="simpleprint_custom_css"
+                            rows="12" class="large-text code"
+                            placeholder=".sp-widget { background: #fff; }"><?php echo esc_textarea( get_option( 'simpleprint_custom_css', '' ) ); ?></textarea>
+                        <p class="description">
+                            Override default widget styles. Common selectors:
+                            <code>.sp-widget</code>, <code>.sp-form-group label</code>, <code>.sp-widget select</code>, <code>.sp-btn-primary</code>, <code>#sp-price-display</code>.
+                        </p>
                     </td>
                 </tr>
             </table>
