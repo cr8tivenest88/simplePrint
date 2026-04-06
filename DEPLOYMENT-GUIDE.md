@@ -7,6 +7,27 @@
 | **Fly.io** | cr8tivenest | cr8tivenest@gmail.com |
 | **GitHub** | cr8tivenest88 | cr8tivenest@gmail.com |
 
+## Admin Panel
+
+- **URL**: https://simpleprint.fly.dev/admin/login
+- **Default login**: `admin` / `admin123` ⚠️ **Change this!**
+- Manages: products, papers, presets, markup settings
+
+### Change Admin Password (via SSH into Fly machine)
+
+```powershell
+C:\Users\Glori\.fly\bin\flyctl.exe ssh console -a simpleprint
+```
+
+Then inside the machine:
+```bash
+cd /app/data
+sed -i 's/"password": "admin123"/"password": "YourNewStrongPassword"/' admins.json
+exit
+```
+
+**Note**: `/app/data` is a persistent Fly volume — it is *not* the `data/` folder in this repo. Editing git will not update production.
+
 ## Hosting
 
 - **Platform**: Fly.io
@@ -109,7 +130,7 @@ flyctl status
 flyctl logs
 
 # SSH into the running machine
-flyctl ssh console
+flyctl ssh console -a simpleprint
 
 # Open the app in browser
 flyctl open
