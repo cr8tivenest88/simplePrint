@@ -40,10 +40,17 @@ function simpleprint_fetch_products() {
         return new WP_Error( 'simpleprint_api_error', "API returned HTTP $code" );
     }
     $body = json_decode( wp_remote_retrieve_body( $response ), true );
-    if ( ! is_array( $body ) || ! isset( $body['data'] ) || ! is_array( $body['data'] ) ) {
+    if ( ! is_array( $body ) ) {
         return new WP_Error( 'simpleprint_api_error', 'Unexpected API response shape' );
     }
-    return $body['data'];
+    // API may return either {products: [...]} or {data: [...]}
+    if ( isset( $body['products'] ) && is_array( $body['products'] ) ) {
+        return $body['products'];
+    }
+    if ( isset( $body['data'] ) && is_array( $body['data'] ) ) {
+        return $body['data'];
+    }
+    return new WP_Error( 'simpleprint_api_error', 'Unexpected API response shape' );
 }
 
 /**
