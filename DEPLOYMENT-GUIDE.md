@@ -1,5 +1,12 @@
 # SimplePrint Deployment Guide
 
+## Account Info
+
+| Service | Account | Email |
+|---------|---------|-------|
+| **Fly.io** | cr8tivenest | cr8tivenest@gmail.com |
+| **GitHub** | cr8tivenest88 | cr8tivenest@gmail.com |
+
 ## Hosting
 
 - **Platform**: Fly.io
