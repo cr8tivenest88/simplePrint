@@ -179,7 +179,7 @@
           const frontColorSelect = document.getElementById('sp-color-front');
           const backColorSelect = document.getElementById('sp-color-back');
 
-          frontColorSelect.innerHTML = '<option value="">-- Choose Front Color --</option>';
+          frontColorSelect.innerHTML = '';
           backColorSelect.innerHTML = '<option value="">-- Choose Back Color --</option>';
 
           colorOptions.forEach(color => {
@@ -193,6 +193,9 @@
             backOption.textContent = color;
             backColorSelect.appendChild(backOption);
           });
+
+          // Default front color to "Color"
+          frontColorSelect.value = 'Color';
 
           // Populate upgrades as checkboxes
           const upgradesContainer = document.getElementById('sp-upgrades-container');
