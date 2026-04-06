@@ -13,6 +13,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Default API host — change in Settings > SimplePrint
 define( 'SIMPLEPRINT_DEFAULT_API', 'https://simpleprint.fly.dev' );
 
+// Load WooCommerce integration if WC is active.
+add_action( 'plugins_loaded', function() {
+    if ( class_exists( 'WooCommerce' ) ) {
+        require_once __DIR__ . '/includes/woocommerce-integration.php';
+    }
+}, 20 );
+
 // Meta key that links a WP page to a SimplePrint product id
 define( 'SIMPLEPRINT_PRODUCT_META_KEY', '_simpleprint_product_id' );
 
@@ -346,12 +353,15 @@ function simpleprint_products_page() {
 
         <p><strong><?php echo count( $products ); ?></strong> products found in API.</p>
 
+        <?php $wc_active = class_exists( 'WooCommerce' ); ?>
+
         <table class="wp-list-table widefat fixed striped">
             <thead>
                 <tr>
-                    <th style="width:80px;">ID</th>
+                    <th style="width:60px;">ID</th>
                     <th>Product Name</th>
-                    <th style="width:140px;">Page Status</th>
+                    <th style="width:130px;">Page Status</th>
+                    <?php if ( $wc_active ) : ?><th style="width:130px;">WC Product</th><?php endif; ?>
                     <th style="width:380px;">Actions</th>
                 </tr>
             </thead>
@@ -377,6 +387,22 @@ function simpleprint_products_page() {
                                 <span style="color:#999;">○ No page</span>
                             <?php endif; ?>
                         </td>
+                        <?php if ( $wc_active ) :
+                            $wc_id = function_exists( 'simpleprint_wc_find_product' ) ? simpleprint_wc_find_product( $pid ) : null;
+                        ?>
+                            <td>
+                                <?php if ( $wc_id ) : ?>
+                                    <a href="<?php echo esc_url( get_edit_post_link( $wc_id ) ); ?>" target="_blank">● Linked</a>
+                                <?php else : ?>
+                                    <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline;">
+                                        <input type="hidden" name="action" value="simpleprint_create_wc_product" />
+                                        <input type="hidden" name="product_id" value="<?php echo esc_attr( $pid ); ?>" />
+                                        <?php wp_nonce_field( 'simpleprint_product_action' ); ?>
+                                        <button type="submit" class="button">Create WC Product</button>
+                                    </form>
+                                <?php endif; ?>
+                            </td>
+                        <?php endif; ?>
                         <td>
                             <?php if ( ! $page ) : ?>
                                 <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline;">

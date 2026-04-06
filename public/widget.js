@@ -286,6 +286,9 @@
 
           // Store current calculation
           currentPayload = data;
+          // Expose payload globally so embedding pages (e.g. WooCommerce) can read it.
+          window.__sp_currentPayload = data;
+          window.dispatchEvent(new CustomEvent('simpleprint:payload', { detail: data }));
 
           // Display price
           document.getElementById('sp-price-loading').style.display = 'none';
