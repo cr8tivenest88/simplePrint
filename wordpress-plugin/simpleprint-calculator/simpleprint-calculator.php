@@ -355,14 +355,14 @@ function simpleprint_products_page() {
 
         <?php $wc_active = class_exists( 'WooCommerce' ); ?>
 
-        <table class="wp-list-table widefat fixed striped">
+        <table class="wp-list-table widefat striped" style="table-layout:auto;">
             <thead>
                 <tr>
                     <th style="width:60px;">ID</th>
-                    <th>Product Name</th>
+                    <th style="min-width:240px;">Product Name</th>
                     <th style="width:130px;">Page Status</th>
-                    <?php if ( $wc_active ) : ?><th style="width:130px;">WC Product</th><?php endif; ?>
-                    <th style="width:380px;">Actions</th>
+                    <?php if ( $wc_active ) : ?><th style="width:140px;">WC Product</th><?php endif; ?>
+                    <th style="width:340px;">Actions</th>
                 </tr>
             </thead>
             <tbody>
