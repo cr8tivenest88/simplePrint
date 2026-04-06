@@ -14,6 +14,27 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'SIMPLEPRINT_DEFAULT_API', 'https://simpleprint.fly.dev' );
 
 /**
+ * On plugin activation: create a "Calculator" page with the shortcode
+ * if one does not already exist.
+ */
+function simpleprint_activate() {
+    $existing = get_page_by_path( 'calculator' );
+    if ( $existing ) {
+        return;
+    }
+
+    wp_insert_post( array(
+        'post_title'   => 'Calculator',
+        'post_name'    => 'calculator',
+        'post_content' => "<h2>Get a Quote</h2>\n<p>Select your options below to calculate your print job price.</p>\n\n[simpleprint_calculator]",
+        'post_status'  => 'publish',
+        'post_type'    => 'page',
+        'post_author'  => get_current_user_id() ?: 1,
+    ) );
+}
+register_activation_hook( __FILE__, 'simpleprint_activate' );
+
+/**
  * Get the configured API base URL.
  */
 function simpleprint_get_api_url() {
